@@ -1,0 +1,17 @@
+### Detaylı Fatura Bilgilerini Alma
+
+e-Arşiv üzerinde bulunan bir faturanın tüm bilgilerini (ürünler, fiyatlar, kdv vb.) alma.
+
+```typescript
+import EInvoice, {
+  Invoice,
+  BasicInvoice
+} from 'e-fatura'
+
+// Bulunacak fatura veya faturaya ait UUID
+const invoiceOrUuid: BasicInvoice | string = ''
+
+const invoice: Invoice = await EInvoice.getInvoice(invoiceOrUuid)
+
+console.log('Bulunan fatura:', invoice)
+```

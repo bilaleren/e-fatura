@@ -1,0 +1,7 @@
+.idea
+dist
+node_modules
+.env
+.DS_Store
+invoice-data/*
+!invoice-data/.gitkeep

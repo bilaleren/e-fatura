@@ -1,0 +1,41 @@
+import EInvoiceError from '../errors/EInvoiceError'
+
+const DATE_FORMAT_PATTERN = /^(\d{2}\/\d{2}\/\d{4}|\d{2}:\d{2}:\d{2})$/
+
+function getDateFormat(
+  value?: Date | string,
+  format?: 'date' | 'time'
+): string {
+  let date: Date
+
+  if (typeof value === 'string') {
+    if (DATE_FORMAT_PATTERN.test(value)) {
+      return value
+    }
+
+    date = new Date(value)
+  } else if (value instanceof Date) {
+    date = value
+  } else {
+    date = new Date()
+  }
+
+  if (`${date}` === 'Invalid Date') {
+    throw new EInvoiceError('Geçersiz tarih.')
+  }
+
+  const day = `${date.getDate()}`.padStart(2, '0')
+  const month = `${date.getMonth() + 1}`.padStart(2, '0')
+  const year = date.getFullYear()
+  const hours = `${date.getHours()}`.padStart(2, '0')
+  const minutes = `${date.getMinutes()}`.padStart(2, '0')
+  const seconds = `${date.getSeconds()}`.padStart(2, '0')
+
+  if (format === undefined || format === 'date') {
+    return `${day}/${month}/${year}`
+  }
+
+  return `${hours}:${minutes}:${seconds}`
+}
+
+export default getDateFormat
