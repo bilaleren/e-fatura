@@ -1,7 +1,7 @@
 {
   "name": "e-fatura",
   "version": "1.0.0",
-  "description": "E-arşiv üzerinden fatura oluşturur, faturaları listeler, fatura(ları) imzalar ve daha fazlasını yapar.",
+  "description": "e-Arşiv üzerinden fatura oluşturur, faturaları listeler, fatura(ları) imzalar ve daha fazlasını yapar.",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "license": "MIT",
