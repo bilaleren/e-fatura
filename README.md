@@ -109,7 +109,7 @@ import EInvoice, {
 } from 'e-fatura'
 
 try {
-  EInvoice.createDraftInvoice({})
+  await EInvoice.createDraftInvoice({})
   // veya EInvoice.*()
 } catch (e) {
   if (e instanceof EInvoiceError) {
@@ -141,4 +141,4 @@ Not: Diğer API hata kodları için [EInvoiceApiErrorCode.ts](src/enums/EInvoice
 
 #### Ayrıca
 
-Bu proje Furkan Kadıoğlunun [efatura](https://github.com/furkankadioglu/efatura) projesinden yola çıkılarak Node.js'e uyarlanmıştır.
+Bu proje Furkan Kadıoğlu'nun [efatura](https://github.com/furkankadioglu/efatura) projesinden yola çıkılarak Node.js'e uyarlanmıştır.
