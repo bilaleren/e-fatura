@@ -1,5 +1,10 @@
 # 🧾 e-Fatura
 
+[![License MIT](https://img.shields.io/badge/licence-MIT-blue.svg)](https://github.com/bilaleren/e-fatura/blob/master/LICENCE)
+[![NPM](https://img.shields.io/npm/v/e-fatura.svg)](https://www.npmjs.com/package/e-fatura)
+[![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
+[![npm downloads](https://img.shields.io/npm/dt/e-fatura.svg)](#kurulum)
+
 Bu paket, Node.js aracılığıyla e-Arşiv üzerinden fatura oluşturma, düzenleme, imzalama gibi işlemleri yapabilmenize olanak sağlar.
 
 🚨 Bu paket **vergiye tabi olan belge** oluşturur, hiç bir sorumluluk kabul edilmez ve ne yaptığınızdan emin olana kadar **EInvoice.setTestMode(true)** kullanarak test modu açık şekilde test verileriyle işlem yapmanız önerilir.
