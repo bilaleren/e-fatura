@@ -13,11 +13,8 @@ const downloadUrl: string = await EInvoice.getInvoiceDownloadUrl(
   false, // Faturanın onay durumu: varsayılan true
 )
 
-console.log(
-  'Fatura indirme bağlantısı:',
-  downloadUrl
-)
+console.log('Fatura indirme bağlantısı:', downloadUrl)
 ```
 
-Not: İndirme bağlantısı oluşturulduktan sonra **EInvoice.logout()** metodunun kullanılmaması gerekmektedir. İndirme bağlantısına gittiğinizde **Oturum zamanaşımına uğradı, yeni oturum açınız** içerikli bir hata verecektir. Fatura indirme ile ilgili daha fazla bilgi için [download-pdf-example.js](../examples/download-pdf-example.js) dosyasına bakabilirsiniz.
+Not: İndirme bağlantısı oluşturulduktan sonra **EInvoice.logout()** metodunun kullanılmaması gerekmektedir. İndirme bağlantısına gittiğinizde **Oturum zamanaşımına uğradı, yeni oturum açınız** içerikli bir hata verecektir. Fatura indirme ile ilgili daha fazla bilgi için [download-zip-example.js](../examples/download-zip-example.js) dosyasına bakabilirsiniz.
 

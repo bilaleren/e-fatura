@@ -59,12 +59,12 @@ async function bootstrap() {
       const json = JSON.parse(Buffer.concat(chunks).toString('utf8'))
 
       if (json) {
-        console.error('Download PDF error:', json)
+        console.error('ZIP dosyası oluşturulamadı:', json)
       }
     } catch (e) {
       await fs.writeFile(invoiceZipPath, Buffer.concat(chunks))
 
-      console.log('Invoice zip file created:', invoiceZipPath)
+      console.log('ZIP dosyası oluşturuldu:', invoiceZipPath)
     } finally {
       await EInvoice.logout()
     }

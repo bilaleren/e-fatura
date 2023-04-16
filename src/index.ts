@@ -2,7 +2,7 @@ import EInvoiceApi from './EInvoiceApi'
 
 const EInvoice = new EInvoiceApi()
 
-export type * from './types'
+export * from './types'
 
 export { EInvoiceApi }
 export { default as InvoiceType } from './enums/InvoiceType'

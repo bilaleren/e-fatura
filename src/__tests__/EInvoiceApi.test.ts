@@ -1,6 +1,6 @@
 import axios from 'axios'
-import qs from 'querystring'
 import { v1 as uuidV1 } from 'uuid'
+import qs from 'node:querystring'
 import EInvoiceApi from '../EInvoiceApi'
 import getDateFormat from '../utils/getDateFormat'
 import EInvoiceError from '../errors/EInvoiceError'
@@ -9,9 +9,9 @@ import puppeteer, { Browser, Page } from 'puppeteer'
 import type {
   BasicInvoice,
   UserInformation,
+  CompanyInformation,
   CreateDraftInvoicePayload,
-  UpdateDraftInvoicePayload,
-  CompanyInformation
+  UpdateDraftInvoicePayload
 } from '../types'
 import EInvoiceApiError from '../errors/EInvoiceApiError'
 import mappingInvoiceKeys from '../utils/mappingInvoiceKeys'

@@ -1,10 +1,10 @@
-import qs from 'querystring'
+import qs from 'node:querystring'
 import { v1 as uuidV1 } from 'uuid'
 import deepMerge from 'lodash.merge'
 import isObject from './utils/isObject'
 import getDateFormat from './utils/getDateFormat'
 import htmlToPdf, { PDFOptions } from './utils/htmlToPdf'
-import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios'
+import axios, { AxiosResponse, AxiosRequestConfig } from 'axios'
 import EInvoiceError from './errors/EInvoiceError'
 import EInvoiceApiError from './errors/EInvoiceApiError'
 import mappingInvoiceKeys from './utils/mappingInvoiceKeys'
@@ -725,6 +725,7 @@ class EInvoiceApi {
   }
 
   /**
+   * @see EInvoiceApi.getSavedPhoneNumber()
    * Fatura imzalamak için SMS ile doğrulama kodu gönderir
    * ve doğrulamaya ait işlem kimliğini geri döner.
    */
@@ -753,7 +754,7 @@ class EInvoiceApi {
     if (
       !isObject(data.data) ||
       typeof data.data.oid !== 'string' ||
-      !data.data.oid
+      data.data.oid === ''
     ) {
       throw new EInvoiceApiError('Geçersiz SMS işlem kimliği.', {
         data,
@@ -766,7 +767,7 @@ class EInvoiceApi {
 
   /**
    * Fatura imzalamak için SMS ile gönderilen doğrulama kodunu onaylar.
-   * @see EInvoiceApi.sendSMSCode
+   * @see EInvoiceApi.sendSMSCode()
    * @param code e-Arşiv üzerinde kayıtlı olan telefon numarasına gelen doğrulama kodu.
    * @param oid `EInvoiceApi.sendSMSCode()` ile alınan işlem kimliği.
    * @param invoice İmzalanacak fatura(lar).
@@ -859,10 +860,8 @@ class EInvoiceApi {
         }
       })
     } catch (e) {
-      const error = e as AxiosError
-
-      if (error.isAxiosError && isObject(error.response)) {
-        const { data, status, statusText } = error.response
+      if (axios.isAxiosError(e) && isObject(e.response)) {
+        const { data, status, statusText } = e.response
 
         throw new EInvoiceApiError('Sunucu taraflı bir hata oluştu.', {
           data,
@@ -874,7 +873,7 @@ class EInvoiceApi {
     }
 
     if (!response || !isObject(response.data)) {
-      throw new EInvoiceApiError('Geçersiz cevap.', {
+      throw new EInvoiceApiError('Geçersiz API cevabı.', {
         data: response?.data,
         errorCode: EInvoiceApiErrorCode.INVALID_RESPONSE,
         httpStatusCode: 500,

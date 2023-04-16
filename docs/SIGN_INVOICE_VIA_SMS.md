@@ -40,7 +40,7 @@ try {
         console.error('SMS doğrulama kodu onaylanamadı.')
         break
       case EInvoiceApiErrorCode.INVALID_SMS_OPERATION_ID:
-        console.error('SMS gönderilemedi veya işlem kimli geçersiz')
+        console.error('SMS gönderilemedi veya işlem kimliği geçersiz')
         break
       case EInvoiceApiErrorCode.SAVED_PHONE_NUMBER_NOT_FOUND:
         console.error('Kayıtlı telefon numarası bulunamadı.')

@@ -30,13 +30,14 @@ async function bootstrap() {
   const pdfBuffer = await EInvoice.getInvoicePDF(invoiceUuid)
   const invoicePath = path.join(
     __dirname,
-    'invoice-pdfs',
+    '..',
+    'invoice-data',
     `Fatura-${new Date().toISOString()}.pdf`
   )
 
   await fs.writeFile(invoicePath, pdfBuffer)
 
-  console.log('Invoice PDF created:', invoicePath)
+  console.log('Fatura PDF kaydedildi:', invoicePath)
 
   await EInvoice.logout()
 }

@@ -245,7 +245,7 @@ export interface Invoice {
   productsTotalPrice: number
 
   /**
-   * Ürünlere uygulanan toplam indirim veya attırım.
+   * Ürünlere uygulanan toplam indirim veya arttırım.
    * @alias 'toplamIskonto'
    */
   totalDiscountOrIncrement: number
@@ -263,7 +263,7 @@ export interface Invoice {
   totalTaxes: number
 
   /**
-   * Ürünlerin fiyat, kdv, vergi, indirim ve attırım değerlerinin toplamı.
+   * Ürünlerin fiyat, kdv, vergi, indirim ve arttırım değerlerinin toplamı.
    * @alias 'vergilerDahilToplamTutar'
    */
   includedTaxesTotalPrice: number
@@ -708,7 +708,7 @@ export interface CreateDraftInvoicePayload {
   date?: DateOrDateString
 
   /**
-   * Faturanın düzenlendiği zaman.
+   * Faturanın düzenlendiği saat.
    * @alias 'saat'
    * @default HH:MM:SS
    */
@@ -722,7 +722,7 @@ export interface CreateDraftInvoicePayload {
   currency?: EInvoiceCurrencyType
 
   /**
-   * Döviz kuru. `curreny` alanı `CurrencyType.TURK_LIRASI` olarak belirtildiğinde kullanılamaz.
+   * Döviz kuru. `curreny` alanı `EInvoiceCurrencyType.TURK_LIRASI` olarak belirtildiğinde kullanılamaz.
    * @alias 'dovzTLkur'
    * @default 0
    */
@@ -915,6 +915,7 @@ export interface CreateDraftInvoicePayload {
   type?: string
 
   /**
+   * Vergiye tabi tutar/değer. Örn. ((calculatedVAT / (KDV oranı / 100))
    * @alias 'matrah'
    */
   base: number
@@ -926,7 +927,7 @@ export interface CreateDraftInvoicePayload {
   productsTotalPrice: number
 
   /**
-   * Ürünlere uygulanan toplam indirim veya attırım.
+   * Ürünlere uygulanan toplam indirim veya arttırım.
    * @alias 'toplamIskonto'
    * @default 0
    */
@@ -947,7 +948,7 @@ export interface CreateDraftInvoicePayload {
   totalTaxes?: number
 
   /**
-   * Ürünlerin fiyat, kdv, vergi, indirim ve attırım değerlerinin toplamı.
+   * Ürünlerin fiyat, kdv, vergi, indirim ve arttırım değerlerinin toplamı.
    * @alias 'vergilerDahilToplamTutar'
    */
   includedTaxesTotalPrice: number

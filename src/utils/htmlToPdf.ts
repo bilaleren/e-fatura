@@ -21,7 +21,9 @@ async function htmlToPdf(html: string, options?: PDFOptions): Promise<Buffer> {
       ...pdfOptions,
       path: undefined
     })
-    .finally(() => browser.close())
+    .finally(() => {
+      browser.close()
+    })
 }
 
 export default htmlToPdf

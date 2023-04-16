@@ -58,6 +58,14 @@ import EInvoice, {
 
 ## Kullanım
 
+**Kendi verileriniz ile test etmek için:**
+
+https://earsivportal.efatura.gov.tr/intragiris.html
+
+**Test hesaplarıyla test etmek için:**
+
+https://earsivportaltest.efatura.gov.tr/login.jsp
+
 Test ortamı için kullanım örneği;
 
 ```typescript
