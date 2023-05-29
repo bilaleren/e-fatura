@@ -1,12 +1,12 @@
-import isObject from './isObject'
-import EInvoiceError from '../errors/EInvoiceError'
+import isPlainObject from './isPlainObject'
+import EInvoiceTypeError from '../errors/EInvoiceTypeError'
 
 function mappingUserInformationKeys(
   value: unknown,
   mappingWithTurkishKeys?: boolean
 ): Record<string, unknown> {
-  if (!isObject(value)) {
-    throw new EInvoiceError('Kullanıcı bilgisi verisi mevcut değil.')
+  if (!isPlainObject(value)) {
+    throw new EInvoiceTypeError('Kullanıcı bilgisi verisi mevcut değil.')
   }
 
   if (mappingWithTurkishKeys) {

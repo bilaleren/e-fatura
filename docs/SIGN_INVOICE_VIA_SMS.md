@@ -5,8 +5,8 @@ e-Arşiv üzerinden belirli bir faturayı imzalama.
 ```typescript
 import EInvoice, {
   BasicInvoice,
-  EInvoiceError,
   EInvoiceApiError,
+  EInvoiceTypeError,
   EInvoiceApiErrorCode
 } from 'e-fatura'
 
@@ -34,20 +34,20 @@ try {
         console.error('Sunucu hatası.')
         break
       case EInvoiceApiErrorCode.INVALID_RESPONSE:
-        console.error('Geçersiz sunucu cevabı')
+        console.error('Geçersiz sunucu cevabı.')
         break
       case EInvoiceApiErrorCode.NOT_VERIFIED_SMS_CODE:
         console.error('SMS doğrulama kodu onaylanamadı.')
         break
       case EInvoiceApiErrorCode.INVALID_SMS_OPERATION_ID:
-        console.error('SMS gönderilemedi veya işlem kimliği geçersiz')
+        console.error('SMS gönderilemedi veya işlem kimliği geçersiz.')
         break
       case EInvoiceApiErrorCode.SAVED_PHONE_NUMBER_NOT_FOUND:
         console.error('Kayıtlı telefon numarası bulunamadı.')
         break
     }
-  } else if (e instanceof EInvoiceError) {
-    console.error('Doğrulama hatası meydana geldi:', e)
+  } else if (e instanceof EInvoiceTypeError) {
+    console.error('Tür hatası meydana geldi:', e)
   } else {
     console.error('Bilinmeyen bir hata meydana geldi:', e)
   }

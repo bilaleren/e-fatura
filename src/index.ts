@@ -1,6 +1,6 @@
 import EInvoiceApi from './EInvoiceApi'
 
-const EInvoice = new EInvoiceApi()
+const EInvoice = EInvoiceApi.create()
 
 export * from './types'
 
@@ -12,7 +12,7 @@ export { default as EInvoiceUnitType } from './enums/EInvoiceUnitType'
 export { default as EInvoiceCurrencyType } from './enums/EInvoiceCurrencyType'
 export { default as EInvoiceApiErrorCode } from './enums/EInvoiceApiErrorCode'
 export { default as InvoiceApprovalStatus } from './enums/InvoiceApprovalStatus'
-export { default as EInvoiceError } from './errors/EInvoiceError'
+export { default as EInvoiceTypeError } from './errors/EInvoiceTypeError'
 export { default as EInvoiceApiError } from './errors/EInvoiceApiError'
 export type { EInvoiceApiErrorResponse } from './errors/EInvoiceApiError'
 

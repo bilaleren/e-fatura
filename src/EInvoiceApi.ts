@@ -1,11 +1,11 @@
 import qs from 'node:querystring'
 import { v1 as uuidV1 } from 'uuid'
 import deepMerge from 'lodash.merge'
-import isObject from './utils/isObject'
+import isPlainObject from './utils/isPlainObject'
 import getDateFormat from './utils/getDateFormat'
 import htmlToPdf, { PDFOptions } from './utils/htmlToPdf'
 import axios, { AxiosResponse, AxiosRequestConfig } from 'axios'
-import EInvoiceError from './errors/EInvoiceError'
+import EInvoiceTypeError from './errors/EInvoiceTypeError'
 import EInvoiceApiError from './errors/EInvoiceApiError'
 import mappingInvoiceKeys from './utils/mappingInvoiceKeys'
 import EInvoiceApiErrorCode from './enums/EInvoiceApiErrorCode'
@@ -59,7 +59,14 @@ class EInvoiceApi {
   }
 
   /**
-   * Var olan erişim jetonunu verir.
+   * Yeni bir e-Arşiv API örneği oluşturur.
+   */
+  static create(): EInvoiceApi {
+    return new EInvoiceApi()
+  }
+
+  /**
+   * Var olan erişim jetonunu döndürür.
    */
   getToken(): string | null {
     return this.token
@@ -121,7 +128,7 @@ class EInvoiceApi {
   }
 
   /**
-   * e-Arşiv'e bağlanır.
+   * e-Arşiv oturumunu başlatır.
    */
   async connect(): Promise<void> {
     await this.getAccessToken()
@@ -136,7 +143,7 @@ class EInvoiceApi {
     const params: Record<string, string> = {
       assoscmd: 'logout',
       rtype: 'json',
-      token: this.token as string
+      token: this.token!
     }
 
     await this.sendRequest(EInvoiceApi.TOKEN_PATH, params)
@@ -147,7 +154,7 @@ class EInvoiceApi {
   }
 
   /**
-   * e-Arşiv servisinde kullanılacak erişim jetonunu alır.
+   * e-Arşiv üxerinde kullanılacak erişim jetonunu alır.
    */
   async getAccessToken(): Promise<string> {
     this.checkCredentials()
@@ -155,9 +162,9 @@ class EInvoiceApi {
     const params: Record<string, string> = {
       assoscmd: this.testMode ? 'login' : 'anologin',
       rtype: 'json',
-      userid: this.username as string,
-      sifre: this.password as string,
-      sifre2: this.password as string,
+      userid: this.username!,
+      sifre: this.password!,
+      sifre2: this.password!,
       parola: '1'
     }
 
@@ -189,7 +196,7 @@ class EInvoiceApi {
       cmd: 'EARSIV_PORTAL_FATURA_GETIR',
       callid: uuidV1(),
       pageName: 'RG_BASITFATURA',
-      token: this.token as string,
+      token: this.token!,
       jp: JSON.stringify({
         ettn: this.getInvoiceUuid(invoiceOrUuid)
       })
@@ -200,7 +207,11 @@ class EInvoiceApi {
       params
     )
 
-    if (isObject(data.data) && 'hata' in data.data && data.data.hata !== '') {
+    if (
+      isPlainObject(data.data) &&
+      'hata' in data.data &&
+      data.data.hata !== ''
+    ) {
       throw new EInvoiceApiError('Fatura bulunamadı.', {
         data,
         errorCode: EInvoiceApiErrorCode.INVOICE_NOT_FOUND
@@ -224,7 +235,7 @@ class EInvoiceApi {
       cmd: 'EARSIV_PORTAL_TASLAKLARI_GETIR',
       callid: uuidV1(),
       pageName: 'RG_BASITTASLAKLAR',
-      token: this.token as string,
+      token: this.token!,
       jp: JSON.stringify({
         baslangic: getDateFormat(startDate),
         bitis: getDateFormat(endDate),
@@ -264,7 +275,7 @@ class EInvoiceApi {
       cmd: 'EARSIV_PORTAL_ADIMA_KESILEN_BELGELERI_GETIR',
       callid: uuidV1(),
       pageName: 'RG_ALICI_TASLAKLAR',
-      token: this.token as string,
+      token: this.token!,
       jp: JSON.stringify({
         baslangic: getDateFormat(startDate),
         bitis: getDateFormat(endDate),
@@ -348,7 +359,7 @@ class EInvoiceApi {
       cmd: 'EARSIV_PORTAL_FATURA_GOSTER',
       callid: uuidV1(),
       pageName: 'RG_TASLAKLAR',
-      token: this.token as string,
+      token: this.token!,
       jp: JSON.stringify({
         ettn: this.getInvoiceUuid(invoiceOrUuid),
         onayDurumu: signed ? 'Onaylandı' : 'Onaylanmadı'
@@ -405,7 +416,7 @@ class EInvoiceApi {
     this.checkToken()
 
     const query: Record<string, string> = {
-      token: this.token as string,
+      token: this.token!,
       ettn: this.getInvoiceUuid(invoiceOrUuid),
       belgeTip: 'FATURA',
       onayDurumu: signed ? 'Onaylandı' : 'Onaylanmadı',
@@ -427,7 +438,7 @@ class EInvoiceApi {
       cmd: 'EARSIV_PORTAL_KULLANICI_BILGILERI_GETIR',
       callid: uuidV1(),
       pageName: 'RG_KULLANICI',
-      token: this.token as string,
+      token: this.token!,
       jp: '{}'
     }
 
@@ -436,7 +447,7 @@ class EInvoiceApi {
       params
     )
 
-    if (!isObject(data.data)) {
+    if (!isPlainObject(data.data)) {
       throw new EInvoiceApiError('Kullanıcı (şirket) bilgisi bulunamadı.', {
         data,
         errorCode: EInvoiceApiErrorCode.USER_INFORMATION_NOT_FOUND
@@ -464,7 +475,7 @@ class EInvoiceApi {
       cmd: 'EARSIV_PORTAL_KULLANICI_BILGILERI_KAYDET',
       callid: uuidV1(),
       pageName: 'RG_KULLANICI',
-      token: this.token as string,
+      token: this.token!,
       jp: JSON.stringify(mappingUserInformationKeys(newUserInformation, true))
     }
 
@@ -502,7 +513,7 @@ class EInvoiceApi {
       cmd: 'SICIL_VEYA_MERNISTEN_BILGILERI_GETIR',
       callid: uuidV1(),
       pageName: 'RG_BASITFATURA',
-      token: this.token as string,
+      token: this.token!,
       jp: JSON.stringify({
         vknTcknn: taxOrIdentityNumber
       })
@@ -513,7 +524,7 @@ class EInvoiceApi {
       params
     )
 
-    if (!isObject(data.data)) {
+    if (!isPlainObject(data.data)) {
       throw new EInvoiceApiError('Şirket bilgisi bulunamadı.', {
         data,
         errorCode: EInvoiceApiErrorCode.COMPANY_INFORMATION_NOT_FOUND
@@ -535,7 +546,7 @@ class EInvoiceApi {
       cmd: 'EARSIV_PORTAL_TELEFONNO_SORGULA',
       callid: uuidV1(),
       pageName: 'RG_BASITTASLAKLAR',
-      token: this.token as string,
+      token: this.token!,
       jp: '{}'
     }
 
@@ -544,7 +555,7 @@ class EInvoiceApi {
       params
     )
 
-    if (!isObject(data.data) || !data.data.telefon) {
+    if (!isPlainObject(data.data) || !data.data.telefon) {
       throw new EInvoiceApiError('Kayıtlı telefon numarası bulunamadı.', {
         data,
         errorCode: EInvoiceApiErrorCode.SAVED_PHONE_NUMBER_NOT_FOUND
@@ -580,7 +591,7 @@ class EInvoiceApi {
       cmd: 'EARSIV_PORTAL_FATURA_OLUSTUR',
       callid: uuidV1(),
       pageName: 'RG_BASITFATURA',
-      token: this.token as string,
+      token: this.token!,
       jp: JSON.stringify(invoice)
     }
 
@@ -620,7 +631,7 @@ class EInvoiceApi {
       cmd: 'EARSIV_PORTAL_FATURA_OLUSTUR',
       callid: uuidV1(),
       pageName: 'RG_BASITFATURA',
-      token: this.token as string,
+      token: this.token!,
       jp: JSON.stringify(mappingDraftInvoiceKeys(newInvoice))
     }
 
@@ -657,7 +668,7 @@ class EInvoiceApi {
       cmd: 'EARSIV_PORTAL_FATURA_SIL',
       callid: uuidV1(),
       pageName: 'RG_TASLAKLAR',
-      token: this.token as string,
+      token: this.token!,
       jp: JSON.stringify({
         silinecekler: [mappingBasicInvoiceKeys(invoice, true)],
         aciklama: reason
@@ -697,7 +708,7 @@ class EInvoiceApi {
       cmd: 'EARSIV_PORTAL_IPTAL_TALEBI_OLUSTUR',
       callid: uuidV1(),
       pageName: 'RG_BASITTASLAKLAR',
-      token: this.token as string,
+      token: this.token!,
       jp: JSON.stringify({
         ettn: invoice.uuid,
         onayDurumu: invoice.approvalStatus,
@@ -738,7 +749,7 @@ class EInvoiceApi {
       cmd: 'EARSIV_PORTAL_SMSSIFRE_GONDER',
       callid: uuidV1(),
       pageName: 'RG_SMSONAY',
-      token: this.token as string,
+      token: this.token!,
       jp: JSON.stringify({
         CEPTEL: phoneNumber,
         KCEPTEL: false,
@@ -752,7 +763,7 @@ class EInvoiceApi {
     )
 
     if (
-      !isObject(data.data) ||
+      !isPlainObject(data.data) ||
       typeof data.data.oid !== 'string' ||
       data.data.oid === ''
     ) {
@@ -783,12 +794,12 @@ class EInvoiceApi {
       cmd: '0lhozfib5410mp',
       callid: uuidV1(),
       pageName: 'RG_SMSONAY',
-      token: this.token as string,
+      token: this.token!,
       jp: JSON.stringify({
         SIFRE: code,
         OID: oid,
         OPR: 1,
-        DATA: (Array.isArray(invoice) ? invoice : [invoice]).map((value) => {
+        DATA: ([] as BasicInvoice[]).concat(invoice).map((value) => {
           return mappingBasicInvoiceKeys(value, true)
         })
       })
@@ -800,7 +811,7 @@ class EInvoiceApi {
     )
 
     if (
-      !isObject(data.data) ||
+      !isPlainObject(data.data) ||
       !data.data.sonuc ||
       `${data.data.sonuc}` === '0'
     ) {
@@ -860,7 +871,7 @@ class EInvoiceApi {
         }
       })
     } catch (e) {
-      if (axios.isAxiosError(e) && isObject(e.response)) {
+      if (axios.isAxiosError(e) && isPlainObject(e.response)) {
         const { data, status, statusText } = e.response
 
         throw new EInvoiceApiError('Sunucu taraflı bir hata oluştu.', {
@@ -872,7 +883,7 @@ class EInvoiceApi {
       }
     }
 
-    if (!response || !isObject(response.data)) {
+    if (!response || !isPlainObject(response.data)) {
       throw new EInvoiceApiError('Geçersiz API cevabı.', {
         data: response?.data,
         errorCode: EInvoiceApiErrorCode.INVALID_RESPONSE,
@@ -899,7 +910,7 @@ class EInvoiceApi {
 
   private checkToken(): void {
     if (!this.token) {
-      throw new EInvoiceError(
+      throw new EInvoiceTypeError(
         `Erişim jetonu bulunamadı. "${this.connect.name}", "${this.getAccessToken.name}" metodlarından birini kullanmayı deneyin.`
       )
     }
@@ -907,7 +918,7 @@ class EInvoiceApi {
 
   private checkCredentials(): void {
     if (!this.username || !this.password) {
-      throw new EInvoiceError(
+      throw new EInvoiceTypeError(
         `Kullanıcı adı veya şifre tanımlanmadı. ${this.setCredentials.name}, ${this.setAnonymousCredentials.name} metodlarından birini kullanarak giriş bilgilerini sağlayın.`
       )
     }

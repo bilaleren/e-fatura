@@ -1,12 +1,12 @@
-import isObject from './isObject'
-import EInvoiceError from '../errors/EInvoiceError'
+import isPlainObject from './isPlainObject'
+import EInvoiceTypeError from '../errors/EInvoiceTypeError'
 
 function mappingBasicInvoiceKeys(
   value: unknown,
   mappingWithTurkishKeys?: boolean
 ): Record<string, unknown> {
-  if (!isObject(value)) {
-    throw new EInvoiceError('Geçersiz fatura verisi.')
+  if (!isPlainObject(value)) {
+    throw new EInvoiceTypeError('Geçersiz fatura verisi.')
   }
 
   if (mappingWithTurkishKeys) {

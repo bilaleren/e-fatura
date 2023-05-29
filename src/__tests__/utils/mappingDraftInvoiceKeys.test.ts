@@ -1,5 +1,5 @@
 import { v1 as uuidV1 } from 'uuid'
-import EInvoiceError from '../../errors/EInvoiceError'
+import EInvoiceTypeError from '../../errors/EInvoiceTypeError'
 import type { CreateDraftInvoicePayload } from '../../types'
 import generateMockInvoice from '../../utils/test/generateMockInvoice'
 import mappingDraftInvoiceKeys from '../../utils/mappingDraftInvoiceKeys'
@@ -8,23 +8,23 @@ describe('mappingDraftInvoiceKeys()', () => {
   it('Fatura verisi obje olmadığında hata fırlatmalı.', () => {
     expect(() => {
       mappingDraftInvoiceKeys('' as unknown as CreateDraftInvoicePayload)
-    }).toThrow(EInvoiceError)
+    }).toThrow(EInvoiceTypeError)
 
     expect(() => {
       mappingDraftInvoiceKeys(0 as unknown as CreateDraftInvoicePayload)
-    }).toThrow(EInvoiceError)
+    }).toThrow(EInvoiceTypeError)
 
     expect(() => {
       mappingDraftInvoiceKeys(null as unknown as CreateDraftInvoicePayload)
-    }).toThrow(EInvoiceError)
+    }).toThrow(EInvoiceTypeError)
 
     expect(() => {
       mappingDraftInvoiceKeys(undefined as unknown as CreateDraftInvoicePayload)
-    }).toThrow(EInvoiceError)
+    }).toThrow(EInvoiceTypeError)
 
     expect(() => {
       mappingDraftInvoiceKeys(false as unknown as CreateDraftInvoicePayload)
-    }).toThrow(EInvoiceError)
+    }).toThrow(EInvoiceTypeError)
   })
 
   it("Geçersiz bir fatura UUID'i belirtildiğinde hata fırlatmalı.", () => {
@@ -40,7 +40,7 @@ describe('mappingDraftInvoiceKeys()', () => {
         productsTotalPrice: 1,
         buyerTitle: 'Bilal Eren'
       })
-    }).toThrow(EInvoiceError)
+    }).toThrow(EInvoiceTypeError)
   })
 
   it(`"base" alanı 1'den küçük olduğunda hata fırlatmalı.`, () => {

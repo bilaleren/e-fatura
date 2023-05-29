@@ -28,7 +28,7 @@ import EInvoice, {
   getDateFormat, // Tarih formatını alma
   EInvoiceCountry, // Ülkeler
   EInvoiceApi, // e-Arşiv API servisi
-  EInvoiceError, // Genel hata sınıfı
+  EInvoiceTypeError, // Tür hata sınıfı
   EInvoiceApiError, // API hata sınıfı
   InvoiceType, // Fatura türü
   EInvoiceApiErrorCode, // API hata kodları
@@ -116,8 +116,8 @@ API taraflı veya doğrulama sonucunda oluşacak hataları ayıklama.
 
 ```typescript
 import EInvoice, {
-  EInvoiceError,
   EInvoiceApiError,
+  EInvoiceTypeError,
   EInvoiceApiErrorCode
 } from 'e-fatura'
 
@@ -125,8 +125,8 @@ try {
   await EInvoice.createDraftInvoice({})
   // veya EInvoice.*()
 } catch (e) {
-  if (e instanceof EInvoiceError) {
-    console.error('Doğrulama hatası meydana geldi:', e)
+  if (e instanceof EInvoiceTypeError) {
+    console.error('Tür hatası meydana geldi:', e)
   } else if (e instanceof EInvoiceApiError) {
     const response = e.getResponse()
 

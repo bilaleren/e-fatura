@@ -1,5 +1,5 @@
 import { v1 as uuidV1 } from 'uuid'
-import EInvoiceError from '../../errors/EInvoiceError'
+import EInvoiceTypeError from '../../errors/EInvoiceTypeError'
 import mappingInvoiceKeys from '../../utils/mappingInvoiceKeys'
 import generateMockInvoice from '../../utils/test/generateMockInvoice'
 
@@ -7,23 +7,23 @@ describe('mappingInvoiceKeys()', () => {
   it('Fatura verisi obje olmadığında hata fırlatmalı.', () => {
     expect(() => {
       mappingInvoiceKeys('')
-    }).toThrow(EInvoiceError)
+    }).toThrow(EInvoiceTypeError)
 
     expect(() => {
       mappingInvoiceKeys(0)
-    }).toThrow(EInvoiceError)
+    }).toThrow(EInvoiceTypeError)
 
     expect(() => {
       mappingInvoiceKeys(null)
-    }).toThrow(EInvoiceError)
+    }).toThrow(EInvoiceTypeError)
 
     expect(() => {
       mappingInvoiceKeys(undefined)
-    }).toThrow(EInvoiceError)
+    }).toThrow(EInvoiceTypeError)
 
     expect(() => {
       mappingInvoiceKeys(false)
-    }).toThrow(EInvoiceError)
+    }).toThrow(EInvoiceTypeError)
   })
 
   it('Fatura verisini ingilizce anahtarlar ile değiştirmeli.', () => {

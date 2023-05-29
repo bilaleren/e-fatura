@@ -1,9 +1,9 @@
 import { v1 as uuidV1, validate as validateUuid } from 'uuid'
-import isObject from './isObject'
+import isPlainObject from './isPlainObject'
 import numberToText from 'number-to-text'
 import getDateFormat from './getDateFormat'
 import InvoiceType from '../enums/InvoiceType'
-import EInvoiceError from '../errors/EInvoiceError'
+import EInvoiceTypeError from '../errors/EInvoiceTypeError'
 import { isRequired, isLessThan } from './validation'
 import EInvoiceCountry from '../enums/EInvoiceCountry'
 import EInvoiceUnitType from '../enums/EInvoiceUnitType'
@@ -44,8 +44,8 @@ function convertPriceToText(value: unknown): string {
 function mappingDraftInvoiceKeys(
   payload: CreateDraftInvoicePayload
 ): Record<string, unknown> {
-  if (!isObject(payload)) {
-    throw new EInvoiceError('Geçersiz fatura yükü.')
+  if (!isPlainObject(payload)) {
+    throw new EInvoiceTypeError('Geçersiz fatura yükü.')
   }
 
   const {
@@ -104,7 +104,7 @@ function mappingDraftInvoiceKeys(
   } = payload
 
   if (!validateUuid(uuid)) {
-    throw new EInvoiceError("Geçersiz fatura UUID'i.")
+    throw new EInvoiceTypeError("Geçersiz fatura UUID'i.")
   }
 
   isLessThan(base, 1, 'base')

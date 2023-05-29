@@ -1,7 +1,7 @@
-import dts from 'rollup-plugin-dts'
-import cleanup from 'rollup-plugin-cleanup'
-import typescript from '@rollup/plugin-typescript'
-import externals from 'rollup-plugin-node-externals'
+const cleanup = require('rollup-plugin-cleanup')
+const { default: dts } = require('rollup-plugin-dts')
+const typescript = require('@rollup/plugin-typescript')
+const externals = require('rollup-plugin-node-externals')
 
 const prod = process.env.NODE_ENV === 'production'
 
@@ -36,7 +36,7 @@ const config = [
 if (prod) {
   config.push({
     input: './src/index.ts',
-    plugins: [dts.default()],
+    plugins: [dts()],
     output: {
       file: './dist/index.d.ts',
       format: 'es',
@@ -45,4 +45,4 @@ if (prod) {
   })
 }
 
-export default config
+module.exports = config

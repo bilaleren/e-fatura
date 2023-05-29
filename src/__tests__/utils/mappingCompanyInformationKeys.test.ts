@@ -1,27 +1,27 @@
-import EInvoiceError from '../../errors/EInvoiceError'
+import EInvoiceTypeError from '../../errors/EInvoiceTypeError'
 import mappingCompanyInformationKeys from '../../utils/mappingCompanyInformationKeys'
 
 describe('mappingCompanyInformationKeys()', () => {
   it('Şirket bilgileri obje olmadığında hata fırlatmalı.', () => {
     expect(() => {
       mappingCompanyInformationKeys('')
-    }).toThrow(EInvoiceError)
+    }).toThrow(EInvoiceTypeError)
 
     expect(() => {
       mappingCompanyInformationKeys(0)
-    }).toThrow(EInvoiceError)
+    }).toThrow(EInvoiceTypeError)
 
     expect(() => {
       mappingCompanyInformationKeys(null)
-    }).toThrow(EInvoiceError)
+    }).toThrow(EInvoiceTypeError)
 
     expect(() => {
       mappingCompanyInformationKeys(undefined)
-    }).toThrow(EInvoiceError)
+    }).toThrow(EInvoiceTypeError)
 
     expect(() => {
       mappingCompanyInformationKeys(false)
-    }).toThrow(EInvoiceError)
+    }).toThrow(EInvoiceTypeError)
   })
 
   it('Şirket bilgileri anahtarlarını ingilizce anahtarlar ile değiştirmeli.', () => {

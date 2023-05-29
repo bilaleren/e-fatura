@@ -1,6 +1,6 @@
 {
   "name": "e-fatura",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "e-Arşiv üzerinden fatura oluşturur, faturaları listeler, fatura(ları) imzalar ve daha fazlasını yapar.",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -17,13 +17,13 @@
   ],
   "scripts": {
     "prebuild": "rm -rf dist && yarn lint && yarn test",
-    "build": "NODE_ENV=production rollup -c --bundleConfigAsCjs",
-    "start:dev": "NODE_ENV=development rollup -c -w --bundleConfigAsCjs",
+    "build": "NODE_ENV=production rollup -c",
+    "start:dev": "NODE_ENV=development rollup -c",
     "lint": "eslint \"./src/**/*.ts\" --quiet",
     "lint:fix": "eslint \"./src/**/*.ts\" --fix",
-    "test": "jest",
     "format": "prettier --write \"./src/**/*.ts\"",
-    "test:watch": "yarn test --watchAll",
+    "test": "jest --config jest.config.js --detectOpenHandles",
+    "test:watch": "yarn run test --watchAll",
     "build:docker-image": "bash ./scripts/docker-image.sh build",
     "run:docker-container": "bash ./scripts/docker-image.sh up"
   },

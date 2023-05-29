@@ -1,5 +1,5 @@
 import getDateFormat from '../../utils/getDateFormat'
-import EInvoiceError from '../../errors/EInvoiceError'
+import EInvoiceTypeError from '../../errors/EInvoiceTypeError'
 
 describe('getDateFormat()', () => {
   it('Bugünü DD/MM/YYYY formatında döndürmeli.', () => {
@@ -16,7 +16,7 @@ describe('getDateFormat()', () => {
   it('Geçersiz bir tarih olduğunda hata fırlatmalı.', () => {
     expect(() => {
       getDateFormat('')
-    }).toThrow(EInvoiceError)
+    }).toThrow(EInvoiceTypeError)
   })
 
   it('28/03/2023 tarihi döndürmeli.', () => {

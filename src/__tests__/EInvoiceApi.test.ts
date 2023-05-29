@@ -1,12 +1,13 @@
-import axios from 'axios'
+import axios, { AxiosRequestConfig } from 'axios'
 import { v1 as uuidV1 } from 'uuid'
 import qs from 'node:querystring'
 import EInvoiceApi from '../EInvoiceApi'
 import getDateFormat from '../utils/getDateFormat'
-import EInvoiceError from '../errors/EInvoiceError'
+import EInvoiceTypeError from '../errors/EInvoiceTypeError'
 import EInvoiceCountry from '../enums/EInvoiceCountry'
 import puppeteer, { Browser, Page } from 'puppeteer'
 import type {
+  Invoice,
   BasicInvoice,
   UserInformation,
   CompanyInformation,
@@ -25,34 +26,53 @@ import mappingUserInformationKeys from '../utils/mappingUserInformationKeys'
 import generateMockBasicInvoice from '../utils/test/generateMockBasicInvoice'
 import mappingCompanyInformationKeys from '../utils/mappingCompanyInformationKeys'
 
+const mockUuidValue = '0e6f07f0-fe5b-11ed-b085-07a0e2821700'
+
+jest.mock('uuid', () => {
+  const original = jest.requireActual('uuid')
+
+  return {
+    __esModule: true,
+    ...original,
+    v1: () => mockUuidValue
+  }
+})
 jest.mock('axios')
 jest.mock('puppeteer')
 
 const mockedAxios = jest.mocked(axios)
 const mockedPuppeteer = jest.mocked(puppeteer)
 
-function removeCallIdFromParams(value: unknown): qs.ParsedUrlQuery {
-  if (typeof value !== 'string') {
-    return {}
+function getRequestConfig(
+  instance: EInvoiceApi,
+  additional?: AxiosRequestConfig
+): AxiosRequestConfig {
+  const baseURL = instance.getTestMode()
+    ? EInvoiceApi.TEST_BASE_URL
+    : EInvoiceApi.BASE_URL
+
+  return {
+    timeout: 10 * 1000,
+    ...additional,
+    baseURL,
+    headers: {
+      ...additional?.headers,
+      ...EInvoiceApi.DEFAULT_HEADERS,
+      Referrer: `${baseURL}${EInvoiceApi.REFERRER_PATH}`
+    }
   }
-
-  const params = qs.parse(value)
-
-  delete params.callid
-
-  return params
 }
 
 describe('EInvoiceApi', () => {
   let EInvoice: EInvoiceApi
 
   beforeEach(() => {
-    EInvoice = new EInvoiceApi()
+    EInvoice = EInvoiceApi.create()
   })
 
   afterEach(() => {
     jest.clearAllMocks()
-    jest.restoreAllMocks()
+    jest.resetAllMocks()
   })
 
   describe('common', () => {
@@ -71,22 +91,35 @@ describe('EInvoiceApi', () => {
 
       try {
         await EInvoice.getBasicInvoices()
-        expect(true).toBeFalsy()
       } catch (e) {
         const error = e as EInvoiceApiError
 
         expect(error).toBeInstanceOf(EInvoiceApiError)
+
         expect(error.getResponse()).toEqual({
           data: undefined,
           errorCode: EInvoiceApiErrorCode.INVALID_RESPONSE,
           httpStatusCode: 500,
           httpStatusText: 'Unknown'
         })
-      }
 
-      expect(mockedAxios.post.mock.calls?.[0]?.[0]).toBe(
-        EInvoiceApi.DISPATCH_PATH
-      )
+        expect(mockedAxios.post).toHaveBeenCalledWith(
+          EInvoiceApi.DISPATCH_PATH,
+          qs.stringify({
+            cmd: 'EARSIV_PORTAL_TASLAKLARI_GETIR',
+            callid: mockUuidValue,
+            pageName: 'RG_BASITTASLAKLAR',
+            token: accessToken,
+            jp: JSON.stringify({
+              baslangic: getDateFormat(),
+              bitis: getDateFormat(),
+              hangiTip: '5000/30000',
+              table: []
+            })
+          }),
+          getRequestConfig(EInvoice)
+        )
+      }
     })
 
     it('2. e-Arşiv API hataları yakalanmalı.', async () => {
@@ -107,11 +140,11 @@ describe('EInvoiceApi', () => {
 
       try {
         await EInvoice.getBasicInvoices()
-        expect(true).toBeFalsy()
       } catch (e) {
         const error = e as EInvoiceApiError
 
         expect(error).toBeInstanceOf(EInvoiceApiError)
+
         expect(error.getResponse()).toEqual({
           data: {
             error: '1',
@@ -121,6 +154,23 @@ describe('EInvoiceApi', () => {
           httpStatusCode: 200,
           httpStatusText: 'Success'
         })
+
+        expect(mockedAxios.post).toHaveBeenCalledWith(
+          EInvoiceApi.DISPATCH_PATH,
+          qs.stringify({
+            cmd: 'EARSIV_PORTAL_TASLAKLARI_GETIR',
+            callid: mockUuidValue,
+            pageName: 'RG_BASITTASLAKLAR',
+            token: accessToken,
+            jp: JSON.stringify({
+              baslangic: getDateFormat(),
+              bitis: getDateFormat(),
+              hangiTip: '5000/30000',
+              table: []
+            })
+          }),
+          getRequestConfig(EInvoice)
+        )
       }
     })
   })
@@ -134,9 +184,9 @@ describe('EInvoiceApi', () => {
 
   describe('setTestMode & getTestMode()', () => {
     it('Test modu aktif/deaktif edilmeli.', () => {
-      expect(EInvoice.getTestMode()).toBeFalsy()
+      expect(EInvoice.getTestMode()).toBe(false)
       expect(EInvoice.setTestMode(true)).toBeInstanceOf(EInvoiceApi)
-      expect(EInvoice.getTestMode()).toBeTruthy()
+      expect(EInvoice.getTestMode()).toBe(true)
     })
   })
 
@@ -228,7 +278,7 @@ describe('EInvoiceApi', () => {
 
   describe('getAccessToken()', () => {
     it('Kullanıcı adı ve şifre belirtilmeiğinde hata fırlatmalı.', () => {
-      expect(() => EInvoice.getAccessToken()).rejects.toThrow(EInvoiceError)
+      expect(() => EInvoice.getAccessToken()).rejects.toThrow(EInvoiceTypeError)
     })
 
     describe('setTestMode(true)', () => {
@@ -255,10 +305,9 @@ describe('EInvoiceApi', () => {
 
         expect(token).toBe(testToken)
         expect(EInvoice.getToken()).toBe(testToken)
-        expect(mockedAxios.post.mock.calls?.[0]?.[0]).toBe(
-          EInvoiceApi.TOKEN_PATH
-        )
-        expect(mockedAxios.post.mock.calls?.[0]?.[1]).toBe(
+
+        expect(mockedAxios.post).toHaveBeenCalledWith(
+          EInvoiceApi.TOKEN_PATH,
           qs.stringify({
             assoscmd: 'login',
             rtype: 'json',
@@ -266,10 +315,8 @@ describe('EInvoiceApi', () => {
             sifre: credentials.password,
             sifre2: credentials.password,
             parola: '1'
-          })
-        )
-        expect(mockedAxios.post.mock.calls?.[0]?.[2]?.baseURL).toBe(
-          EInvoiceApi.TEST_BASE_URL
+          }),
+          getRequestConfig(EInvoice)
         )
       })
 
@@ -295,11 +342,8 @@ describe('EInvoiceApi', () => {
           EInvoiceApiError
         )
 
-        expect(mockedAxios.post.mock.calls?.[0]?.[0]).toBe(
-          EInvoiceApi.TOKEN_PATH
-        )
-
-        expect(mockedAxios.post.mock.calls?.[0]?.[1]).toBe(
+        expect(mockedAxios.post).toHaveBeenCalledWith(
+          EInvoiceApi.TOKEN_PATH,
           qs.stringify({
             assoscmd: 'login',
             rtype: 'json',
@@ -307,11 +351,8 @@ describe('EInvoiceApi', () => {
             sifre: credentials.password,
             sifre2: credentials.password,
             parola: '1'
-          })
-        )
-
-        expect(mockedAxios.post.mock.calls?.[0]?.[2]?.baseURL).toBe(
-          EInvoiceApi.TEST_BASE_URL
+          }),
+          getRequestConfig(EInvoice)
         )
       })
 
@@ -337,11 +378,8 @@ describe('EInvoiceApi', () => {
           EInvoiceApiError
         )
 
-        expect(mockedAxios.post.mock.calls?.[0]?.[0]).toBe(
-          EInvoiceApi.TOKEN_PATH
-        )
-
-        expect(mockedAxios.post.mock.calls?.[0]?.[1]).toBe(
+        expect(mockedAxios.post).toHaveBeenCalledWith(
+          EInvoiceApi.TOKEN_PATH,
           qs.stringify({
             assoscmd: 'login',
             rtype: 'json',
@@ -349,11 +387,8 @@ describe('EInvoiceApi', () => {
             sifre: credentials.password,
             sifre2: credentials.password,
             parola: '1'
-          })
-        )
-
-        expect(mockedAxios.post.mock.calls?.[0]?.[2]?.baseURL).toBe(
-          EInvoiceApi.TEST_BASE_URL
+          }),
+          getRequestConfig(EInvoice)
         )
       })
     })
@@ -382,10 +417,9 @@ describe('EInvoiceApi', () => {
 
         expect(token).toBe(testToken)
         expect(EInvoice.getToken()).toBe(testToken)
-        expect(mockedAxios.post.mock.calls?.[0]?.[0]).toBe(
-          EInvoiceApi.TOKEN_PATH
-        )
-        expect(mockedAxios.post.mock.calls?.[0]?.[1]).toBe(
+
+        expect(mockedAxios.post).toHaveBeenCalledWith(
+          EInvoiceApi.TOKEN_PATH,
           qs.stringify({
             assoscmd: 'anologin',
             rtype: 'json',
@@ -393,10 +427,8 @@ describe('EInvoiceApi', () => {
             sifre: credentials.password,
             sifre2: credentials.password,
             parola: '1'
-          })
-        )
-        expect(mockedAxios.post.mock.calls?.[0]?.[2]?.baseURL).toBe(
-          EInvoiceApi.BASE_URL
+          }),
+          getRequestConfig(EInvoice)
         )
       })
 
@@ -422,11 +454,8 @@ describe('EInvoiceApi', () => {
           EInvoiceApiError
         )
 
-        expect(mockedAxios.post.mock.calls?.[0]?.[0]).toBe(
-          EInvoiceApi.TOKEN_PATH
-        )
-
-        expect(mockedAxios.post.mock.calls?.[0]?.[1]).toBe(
+        expect(mockedAxios.post).toHaveBeenCalledWith(
+          EInvoiceApi.TOKEN_PATH,
           qs.stringify({
             assoscmd: 'anologin',
             rtype: 'json',
@@ -434,11 +463,8 @@ describe('EInvoiceApi', () => {
             sifre: credentials.password,
             sifre2: credentials.password,
             parola: '1'
-          })
-        )
-
-        expect(mockedAxios.post.mock.calls?.[0]?.[2]?.baseURL).toBe(
-          EInvoiceApi.BASE_URL
+          }),
+          getRequestConfig(EInvoice)
         )
       })
 
@@ -464,11 +490,8 @@ describe('EInvoiceApi', () => {
           EInvoiceApiError
         )
 
-        expect(mockedAxios.post.mock.calls?.[0]?.[0]).toBe(
-          EInvoiceApi.TOKEN_PATH
-        )
-
-        expect(mockedAxios.post.mock.calls?.[0]?.[1]).toBe(
+        expect(mockedAxios.post).toHaveBeenCalledWith(
+          EInvoiceApi.TOKEN_PATH,
           qs.stringify({
             assoscmd: 'anologin',
             rtype: 'json',
@@ -476,11 +499,8 @@ describe('EInvoiceApi', () => {
             sifre: credentials.password,
             sifre2: credentials.password,
             parola: '1'
-          })
-        )
-
-        expect(mockedAxios.post.mock.calls?.[0]?.[2]?.baseURL).toBe(
-          EInvoiceApi.BASE_URL
+          }),
+          getRequestConfig(EInvoice)
         )
       })
     })
@@ -488,7 +508,7 @@ describe('EInvoiceApi', () => {
 
   describe('getInvoice()', () => {
     it('Erişim jetonu belirtilmediğinde hata fırlatmalı.', () => {
-      expect(() => EInvoice.getInvoice('')).rejects.toThrow(EInvoiceError)
+      expect(() => EInvoice.getInvoice('')).rejects.toThrow(EInvoiceTypeError)
     })
 
     it('Faturaya göre fatura getirmeli.', async () => {
@@ -520,20 +540,19 @@ describe('EInvoiceApi', () => {
 
       expect(invoice).toStrictEqual(mappingInvoiceKeys(mockInvoice))
 
-      expect(mockedAxios.post.mock.calls?.[0]?.[0]).toBe(
-        EInvoiceApi.DISPATCH_PATH
+      expect(mockedAxios.post).toHaveBeenCalledWith(
+        EInvoiceApi.DISPATCH_PATH,
+        qs.stringify({
+          cmd: 'EARSIV_PORTAL_FATURA_GETIR',
+          callid: mockUuidValue,
+          pageName: 'RG_BASITFATURA',
+          token: accessToken,
+          jp: JSON.stringify({
+            ettn: uuid
+          })
+        }),
+        getRequestConfig(EInvoice)
       )
-
-      expect(
-        removeCallIdFromParams(mockedAxios.post.mock.calls?.[0]?.[1])
-      ).toEqual({
-        cmd: 'EARSIV_PORTAL_FATURA_GETIR',
-        pageName: 'RG_BASITFATURA',
-        token: accessToken,
-        jp: JSON.stringify({
-          ettn: uuid
-        })
-      })
     })
 
     it("Fatura UUID'ine göre faturayı getirmeli.", async () => {
@@ -566,20 +585,19 @@ describe('EInvoiceApi', () => {
         })
       )
 
-      expect(mockedAxios.post.mock.calls?.[0]?.[0]).toBe(
-        EInvoiceApi.DISPATCH_PATH
+      expect(mockedAxios.post).toHaveBeenCalledWith(
+        EInvoiceApi.DISPATCH_PATH,
+        qs.stringify({
+          cmd: 'EARSIV_PORTAL_FATURA_GETIR',
+          callid: mockUuidValue,
+          pageName: 'RG_BASITFATURA',
+          token: accessToken,
+          jp: JSON.stringify({
+            ettn: uuid
+          })
+        }),
+        getRequestConfig(EInvoice)
       )
-
-      expect(
-        removeCallIdFromParams(mockedAxios.post.mock.calls?.[0]?.[1])
-      ).toEqual({
-        cmd: 'EARSIV_PORTAL_FATURA_GETIR',
-        pageName: 'RG_BASITFATURA',
-        token: accessToken,
-        jp: JSON.stringify({
-          ettn: uuid
-        })
-      })
     })
 
     it('Fatura verisinde "hata" alanı olduğunda hata fırlatmalı.', async () => {
@@ -610,26 +628,25 @@ describe('EInvoiceApi', () => {
         EInvoiceApiError
       )
 
-      expect(mockedAxios.post.mock.calls?.[0]?.[0]).toBe(
-        EInvoiceApi.DISPATCH_PATH
+      expect(mockedAxios.post).toHaveBeenCalledWith(
+        EInvoiceApi.DISPATCH_PATH,
+        qs.stringify({
+          cmd: 'EARSIV_PORTAL_FATURA_GETIR',
+          callid: mockUuidValue,
+          pageName: 'RG_BASITFATURA',
+          token: accessToken,
+          jp: JSON.stringify({
+            ettn: uuid
+          })
+        }),
+        getRequestConfig(EInvoice)
       )
-
-      expect(
-        removeCallIdFromParams(mockedAxios.post.mock.calls?.[0]?.[1])
-      ).toEqual({
-        cmd: 'EARSIV_PORTAL_FATURA_GETIR',
-        pageName: 'RG_BASITFATURA',
-        token: accessToken,
-        jp: JSON.stringify({
-          ettn: uuid
-        })
-      })
     })
   })
 
   describe('logout()', () => {
     it('Erişim jetonu belirtilmediğinde hata fırlatmalı.', () => {
-      expect(() => EInvoice.logout()).rejects.toThrow(EInvoiceError)
+      expect(() => EInvoice.logout()).rejects.toThrow(EInvoiceTypeError)
     })
 
     it('e-Arşiv oturumunu sonlandırmalı.', async () => {
@@ -649,22 +666,26 @@ describe('EInvoiceApi', () => {
 
       const result = await EInvoice.logout()
 
-      expect(result).toBeTruthy()
+      expect(result).toBe(true)
       expect(EInvoice.getToken()).toBeNull()
-      expect(mockedAxios.post.mock.calls?.[0]?.[0]).toBe(EInvoiceApi.TOKEN_PATH)
-      expect(mockedAxios.post.mock.calls?.[0]?.[1]).toBe(
+
+      expect(mockedAxios.post).toHaveBeenCalledWith(
+        EInvoiceApi.TOKEN_PATH,
         qs.stringify({
           assoscmd: 'logout',
           rtype: 'json',
           token: accessToken
-        })
+        }),
+        getRequestConfig(EInvoice)
       )
     })
   })
 
   describe('getBasicInvoices()', () => {
     it('Erişim jetonu belirtilmediğinde hata fırlatmalı.', () => {
-      expect(() => EInvoice.getBasicInvoices()).rejects.toThrow(EInvoiceError)
+      expect(() => EInvoice.getBasicInvoices()).rejects.toThrow(
+        EInvoiceTypeError
+      )
     })
 
     it('Bugüne ait faturaları getirmeli.', async () => {
@@ -690,23 +711,22 @@ describe('EInvoiceApi', () => {
         mockInvoices.map((value) => mappingBasicInvoiceKeys(value))
       )
 
-      expect(mockedAxios.post.mock.calls?.[0]?.[0]).toBe(
-        EInvoiceApi.DISPATCH_PATH
+      expect(mockedAxios.post).toHaveBeenCalledWith(
+        EInvoiceApi.DISPATCH_PATH,
+        qs.stringify({
+          cmd: 'EARSIV_PORTAL_TASLAKLARI_GETIR',
+          callid: mockUuidValue,
+          pageName: 'RG_BASITTASLAKLAR',
+          token: accessToken,
+          jp: JSON.stringify({
+            baslangic: getDateFormat(),
+            bitis: getDateFormat(),
+            hangiTip: '5000/30000',
+            table: []
+          })
+        }),
+        getRequestConfig(EInvoice)
       )
-
-      expect(
-        removeCallIdFromParams(mockedAxios.post.mock.calls?.[0]?.[1])
-      ).toEqual({
-        cmd: 'EARSIV_PORTAL_TASLAKLARI_GETIR',
-        pageName: 'RG_BASITTASLAKLAR',
-        token: accessToken,
-        jp: JSON.stringify({
-          baslangic: getDateFormat(),
-          bitis: getDateFormat(),
-          hangiTip: '5000/30000',
-          table: []
-        })
-      })
     })
 
     it('Belirli tarih aralığındaki faturaları getirmeli.', async () => {
@@ -740,23 +760,22 @@ describe('EInvoiceApi', () => {
         mockInvoices.map((value) => mappingBasicInvoiceKeys(value))
       )
 
-      expect(mockedAxios.post.mock.calls?.[0]?.[0]).toBe(
-        EInvoiceApi.DISPATCH_PATH
+      expect(mockedAxios.post).toHaveBeenCalledWith(
+        EInvoiceApi.DISPATCH_PATH,
+        qs.stringify({
+          cmd: 'EARSIV_PORTAL_TASLAKLARI_GETIR',
+          callid: mockUuidValue,
+          pageName: 'RG_BASITTASLAKLAR',
+          token: accessToken,
+          jp: JSON.stringify({
+            baslangic: getDateFormat(startDate),
+            bitis: getDateFormat(endDate),
+            hangiTip: '5000/30000',
+            table: []
+          })
+        }),
+        getRequestConfig(EInvoice)
       )
-
-      expect(
-        removeCallIdFromParams(mockedAxios.post.mock.calls?.[0]?.[1])
-      ).toEqual({
-        cmd: 'EARSIV_PORTAL_TASLAKLARI_GETIR',
-        pageName: 'RG_BASITTASLAKLAR',
-        token: accessToken,
-        jp: JSON.stringify({
-          baslangic: getDateFormat(startDate),
-          bitis: getDateFormat(endDate),
-          hangiTip: '5000/30000',
-          table: []
-        })
-      })
     })
 
     it('Faturaları "Onay Durumuna" göre filtrelemeli.', async () => {
@@ -791,23 +810,22 @@ describe('EInvoiceApi', () => {
 
         expect(invoices).toEqual(filteredInvoices)
 
-        expect(mockedAxios.post.mock.calls?.[0]?.[0]).toBe(
-          EInvoiceApi.DISPATCH_PATH
+        expect(mockedAxios.post).toHaveBeenCalledWith(
+          EInvoiceApi.DISPATCH_PATH,
+          qs.stringify({
+            cmd: 'EARSIV_PORTAL_TASLAKLARI_GETIR',
+            callid: mockUuidValue,
+            pageName: 'RG_BASITTASLAKLAR',
+            token: accessToken,
+            jp: JSON.stringify({
+              baslangic: getDateFormat(),
+              bitis: getDateFormat(),
+              hangiTip: '5000/30000',
+              table: []
+            })
+          }),
+          getRequestConfig(EInvoice)
         )
-
-        expect(
-          removeCallIdFromParams(mockedAxios.post.mock.calls?.[0]?.[1])
-        ).toEqual({
-          cmd: 'EARSIV_PORTAL_TASLAKLARI_GETIR',
-          pageName: 'RG_BASITTASLAKLAR',
-          token: accessToken,
-          jp: JSON.stringify({
-            baslangic: getDateFormat(),
-            bitis: getDateFormat(),
-            hangiTip: '5000/30000',
-            table: []
-          })
-        })
       }
 
       await expectInvoicesFromApprovalStatus(InvoiceApprovalStatus.APPROVED)
@@ -821,7 +839,7 @@ describe('EInvoiceApi', () => {
   describe('getBasicInvoicesIssuedToMe()', () => {
     it('Erişim jetonu belirtilmediğinde hata fırlatmalı.', () => {
       expect(() => EInvoice.getBasicInvoicesIssuedToMe()).rejects.toThrow(
-        EInvoiceError
+        EInvoiceTypeError
       )
     })
 
@@ -848,23 +866,22 @@ describe('EInvoiceApi', () => {
         mockInvoices.map((value) => mappingBasicInvoiceKeys(value))
       )
 
-      expect(mockedAxios.post.mock.calls?.[0]?.[0]).toBe(
-        EInvoiceApi.DISPATCH_PATH
+      expect(mockedAxios.post).toHaveBeenCalledWith(
+        EInvoiceApi.DISPATCH_PATH,
+        qs.stringify({
+          cmd: 'EARSIV_PORTAL_ADIMA_KESILEN_BELGELERI_GETIR',
+          callid: mockUuidValue,
+          pageName: 'RG_ALICI_TASLAKLAR',
+          token: accessToken,
+          jp: JSON.stringify({
+            baslangic: getDateFormat(),
+            bitis: getDateFormat(),
+            hangiTip: '5000/30000',
+            table: []
+          })
+        }),
+        getRequestConfig(EInvoice)
       )
-
-      expect(
-        removeCallIdFromParams(mockedAxios.post.mock.calls?.[0]?.[1])
-      ).toEqual({
-        cmd: 'EARSIV_PORTAL_ADIMA_KESILEN_BELGELERI_GETIR',
-        pageName: 'RG_ALICI_TASLAKLAR',
-        token: accessToken,
-        jp: JSON.stringify({
-          baslangic: getDateFormat(),
-          bitis: getDateFormat(),
-          hangiTip: '5000/30000',
-          table: []
-        })
-      })
     })
 
     it('Belirli tarih aralığındaki faturaları getirmeli.', async () => {
@@ -898,23 +915,22 @@ describe('EInvoiceApi', () => {
         mockInvoices.map((value) => mappingBasicInvoiceKeys(value))
       )
 
-      expect(mockedAxios.post.mock.calls?.[0]?.[0]).toBe(
-        EInvoiceApi.DISPATCH_PATH
+      expect(mockedAxios.post).toHaveBeenCalledWith(
+        EInvoiceApi.DISPATCH_PATH,
+        qs.stringify({
+          cmd: 'EARSIV_PORTAL_ADIMA_KESILEN_BELGELERI_GETIR',
+          callid: mockUuidValue,
+          pageName: 'RG_ALICI_TASLAKLAR',
+          token: accessToken,
+          jp: JSON.stringify({
+            baslangic: getDateFormat(startDate),
+            bitis: getDateFormat(endDate),
+            hangiTip: '5000/30000',
+            table: []
+          })
+        }),
+        getRequestConfig(EInvoice)
       )
-
-      expect(
-        removeCallIdFromParams(mockedAxios.post.mock.calls?.[0]?.[1])
-      ).toEqual({
-        cmd: 'EARSIV_PORTAL_ADIMA_KESILEN_BELGELERI_GETIR',
-        pageName: 'RG_ALICI_TASLAKLAR',
-        token: accessToken,
-        jp: JSON.stringify({
-          baslangic: getDateFormat(startDate),
-          bitis: getDateFormat(endDate),
-          hangiTip: '5000/30000',
-          table: []
-        })
-      })
     })
 
     it('Faturaları "Onay Durumuna" göre filtrelemeli.', async () => {
@@ -949,23 +965,22 @@ describe('EInvoiceApi', () => {
 
         expect(invoices).toEqual(filteredInvoices)
 
-        expect(mockedAxios.post.mock.calls?.[0]?.[0]).toBe(
-          EInvoiceApi.DISPATCH_PATH
+        expect(mockedAxios.post).toHaveBeenCalledWith(
+          EInvoiceApi.DISPATCH_PATH,
+          qs.stringify({
+            cmd: 'EARSIV_PORTAL_ADIMA_KESILEN_BELGELERI_GETIR',
+            callid: mockUuidValue,
+            pageName: 'RG_ALICI_TASLAKLAR',
+            token: accessToken,
+            jp: JSON.stringify({
+              baslangic: getDateFormat(),
+              bitis: getDateFormat(),
+              hangiTip: '5000/30000',
+              table: []
+            })
+          }),
+          getRequestConfig(EInvoice)
         )
-
-        expect(
-          removeCallIdFromParams(mockedAxios.post.mock.calls?.[0]?.[1])
-        ).toEqual({
-          cmd: 'EARSIV_PORTAL_ADIMA_KESILEN_BELGELERI_GETIR',
-          pageName: 'RG_ALICI_TASLAKLAR',
-          token: accessToken,
-          jp: JSON.stringify({
-            baslangic: getDateFormat(),
-            bitis: getDateFormat(),
-            hangiTip: '5000/30000',
-            table: []
-          })
-        })
       }
 
       await expectInvoicesFromApprovalStatus(InvoiceApprovalStatus.APPROVED)
@@ -978,7 +993,9 @@ describe('EInvoiceApi', () => {
 
   describe('findBasicInvoice()', () => {
     it('Erişim jetonu belirtilmediğinde hata fırlatmalı.', () => {
-      expect(() => EInvoice.findBasicInvoice('')).rejects.toThrow(EInvoiceError)
+      expect(() => EInvoice.findBasicInvoice('')).rejects.toThrow(
+        EInvoiceTypeError
+      )
     })
 
     it('Faturaya göre fatura getirmeli.', async () => {
@@ -1108,7 +1125,9 @@ describe('EInvoiceApi', () => {
 
   describe('getInvoiceHTML()', () => {
     it('Erişim jetonu belirtilmediğinde hata fırlatmalı.', () => {
-      expect(() => EInvoice.getInvoiceHTML('')).rejects.toThrow(EInvoiceError)
+      expect(() => EInvoice.getInvoiceHTML('')).rejects.toThrow(
+        EInvoiceTypeError
+      )
     })
 
     it('Fatura ile HTML içeriğini getirmeli.', async () => {
@@ -1136,21 +1155,20 @@ describe('EInvoiceApi', () => {
 
       expect(invoiceHTML).toBe(expectedHTML)
 
-      expect(mockedAxios.post.mock.calls?.[0]?.[0]).toBe(
-        EInvoiceApi.DISPATCH_PATH
+      expect(mockedAxios.post).toHaveBeenCalledWith(
+        EInvoiceApi.DISPATCH_PATH,
+        qs.stringify({
+          cmd: 'EARSIV_PORTAL_FATURA_GOSTER',
+          callid: mockUuidValue,
+          pageName: 'RG_TASLAKLAR',
+          token: accessToken,
+          jp: JSON.stringify({
+            ettn: uuid,
+            onayDurumu: 'Onaylandı'
+          })
+        }),
+        getRequestConfig(EInvoice)
       )
-
-      expect(
-        removeCallIdFromParams(mockedAxios.post.mock.calls?.[0]?.[1])
-      ).toEqual({
-        cmd: 'EARSIV_PORTAL_FATURA_GOSTER',
-        pageName: 'RG_TASLAKLAR',
-        token: accessToken,
-        jp: JSON.stringify({
-          ettn: uuid,
-          onayDurumu: 'Onaylandı'
-        })
-      })
     })
 
     it("Fatura UUID'i ile HTML içeriğini getirmeli.", async () => {
@@ -1173,21 +1191,20 @@ describe('EInvoiceApi', () => {
 
       expect(invoiceHTML).toBe(expectedHTML)
 
-      expect(mockedAxios.post.mock.calls?.[0]?.[0]).toBe(
-        EInvoiceApi.DISPATCH_PATH
+      expect(mockedAxios.post).toHaveBeenCalledWith(
+        EInvoiceApi.DISPATCH_PATH,
+        qs.stringify({
+          cmd: 'EARSIV_PORTAL_FATURA_GOSTER',
+          callid: mockUuidValue,
+          pageName: 'RG_TASLAKLAR',
+          token: accessToken,
+          jp: JSON.stringify({
+            ettn: uuid,
+            onayDurumu: 'Onaylanmadı'
+          })
+        }),
+        getRequestConfig(EInvoice)
       )
-
-      expect(
-        removeCallIdFromParams(mockedAxios.post.mock.calls?.[0]?.[1])
-      ).toEqual({
-        cmd: 'EARSIV_PORTAL_FATURA_GOSTER',
-        pageName: 'RG_TASLAKLAR',
-        token: accessToken,
-        jp: JSON.stringify({
-          ettn: uuid,
-          onayDurumu: 'Onaylanmadı'
-        })
-      })
     })
 
     it('Fatura HTML içeriğine "window.print()" eklemeli.', async () => {
@@ -1228,27 +1245,28 @@ describe('EInvoiceApi', () => {
         )
       )
 
-      expect(mockedAxios.post.mock.calls?.[0]?.[0]).toBe(
-        EInvoiceApi.DISPATCH_PATH
+      expect(mockedAxios.post).toHaveBeenCalledWith(
+        EInvoiceApi.DISPATCH_PATH,
+        qs.stringify({
+          cmd: 'EARSIV_PORTAL_FATURA_GOSTER',
+          callid: mockUuidValue,
+          pageName: 'RG_TASLAKLAR',
+          token: accessToken,
+          jp: JSON.stringify({
+            ettn: uuid,
+            onayDurumu: 'Onaylanmadı'
+          })
+        }),
+        getRequestConfig(EInvoice)
       )
-
-      expect(
-        removeCallIdFromParams(mockedAxios.post.mock.calls?.[0]?.[1])
-      ).toEqual({
-        cmd: 'EARSIV_PORTAL_FATURA_GOSTER',
-        pageName: 'RG_TASLAKLAR',
-        token: accessToken,
-        jp: JSON.stringify({
-          ettn: uuid,
-          onayDurumu: 'Onaylanmadı'
-        })
-      })
     })
   })
 
   describe('getInvoicePDF()', () => {
     it('Erişim jetonu belirtilmediğinde hata fırlatmalı.', () => {
-      expect(() => EInvoice.getInvoicePDF('')).rejects.toThrow(EInvoiceError)
+      expect(() => EInvoice.getInvoicePDF('')).rejects.toThrow(
+        EInvoiceTypeError
+      )
     })
 
     it('Fatura ile PDF içeriğini getirmeli.', async () => {
@@ -1360,7 +1378,9 @@ describe('EInvoiceApi', () => {
 
   describe('getInvoiceDownloadUrl()', () => {
     it('Erişim jetonu belirtilmediğinde hata fırlatmalı.', () => {
-      expect(() => EInvoice.getInvoiceDownloadUrl('')).toThrow(EInvoiceError)
+      expect(() => EInvoice.getInvoiceDownloadUrl('')).toThrow(
+        EInvoiceTypeError
+      )
     })
 
     it('Fatura ile faturaya ait indirme bağlantısını getirmeli.', () => {
@@ -1415,7 +1435,9 @@ describe('EInvoiceApi', () => {
 
   describe('getUserInformation()', () => {
     it('Erişim jetonu belirtilmediğinde hata fırlatmalı.', () => {
-      expect(() => EInvoice.getUserInformation()).rejects.toThrow(EInvoiceError)
+      expect(() => EInvoice.getUserInformation()).rejects.toThrow(
+        EInvoiceTypeError
+      )
     })
 
     it('e-Arşiv üzerinde kayıtlı olan kullanıcı bilgilerini getirmeli.', async () => {
@@ -1459,25 +1481,24 @@ describe('EInvoiceApi', () => {
 
       expect(userInformation).toEqual(mockUserInformation)
 
-      expect(mockedAxios.post.mock.calls?.[0]?.[0]).toBe(
-        EInvoiceApi.DISPATCH_PATH
+      expect(mockedAxios.post).toHaveBeenCalledWith(
+        EInvoiceApi.DISPATCH_PATH,
+        qs.stringify({
+          cmd: 'EARSIV_PORTAL_KULLANICI_BILGILERI_GETIR',
+          callid: mockUuidValue,
+          pageName: 'RG_KULLANICI',
+          token: accessToken,
+          jp: '{}'
+        }),
+        getRequestConfig(EInvoice)
       )
-
-      expect(
-        removeCallIdFromParams(mockedAxios.post.mock.calls?.[0]?.[1])
-      ).toEqual({
-        cmd: 'EARSIV_PORTAL_KULLANICI_BILGILERI_GETIR',
-        pageName: 'RG_KULLANICI',
-        token: accessToken,
-        jp: '{}'
-      })
     })
   })
 
   describe('updateUserInformation()', () => {
     it('Erişim jetonu belirtilmediğinde hata fırlatmalı.', () => {
       expect(() => EInvoice.updateUserInformation({})).rejects.toThrow(
-        EInvoiceError
+        EInvoiceTypeError
       )
     })
 
@@ -1537,33 +1558,32 @@ describe('EInvoiceApi', () => {
         ...mockUpdateUserInformation
       })
 
-      expect(mockedAxios.post.mock.calls?.[0]?.[0]).toBe(
-        EInvoiceApi.DISPATCH_PATH
-      )
-
-      expect(
-        removeCallIdFromParams(mockedAxios.post.mock.calls?.[0]?.[1])
-      ).toEqual({
-        cmd: 'EARSIV_PORTAL_KULLANICI_BILGILERI_KAYDET',
-        pageName: 'RG_KULLANICI',
-        token: accessToken,
-        jp: JSON.stringify(
-          mappingUserInformationKeys(
-            {
-              ...mockUserInformation,
-              ...mockUpdateUserInformation
-            },
-            true
+      expect(mockedAxios.post).toHaveBeenCalledWith(
+        EInvoiceApi.DISPATCH_PATH,
+        qs.stringify({
+          cmd: 'EARSIV_PORTAL_KULLANICI_BILGILERI_KAYDET',
+          callid: mockUuidValue,
+          pageName: 'RG_KULLANICI',
+          token: accessToken,
+          jp: JSON.stringify(
+            mappingUserInformationKeys(
+              {
+                ...mockUserInformation,
+                ...mockUpdateUserInformation
+              },
+              true
+            )
           )
-        )
-      })
+        }),
+        getRequestConfig(EInvoice)
+      )
     })
   })
 
   describe('getCompanyInformation()', () => {
     it('Erişim jetonu belirtilmediğinde hata fırlatmalı.', () => {
       expect(() => EInvoice.getCompanyInformation('')).rejects.toThrow(
-        EInvoiceError
+        EInvoiceTypeError
       )
     })
 
@@ -1594,27 +1614,26 @@ describe('EInvoiceApi', () => {
 
       expect(mockCompanyInformation).toEqual(companyInformation)
 
-      expect(mockedAxios.post.mock.calls?.[0]?.[0]).toBe(
-        EInvoiceApi.DISPATCH_PATH
+      expect(mockedAxios.post).toHaveBeenCalledWith(
+        EInvoiceApi.DISPATCH_PATH,
+        qs.stringify({
+          cmd: 'SICIL_VEYA_MERNISTEN_BILGILERI_GETIR',
+          callid: mockUuidValue,
+          pageName: 'RG_BASITFATURA',
+          token: accessToken,
+          jp: JSON.stringify({
+            vknTcknn: trIdentityNumber
+          })
+        }),
+        getRequestConfig(EInvoice)
       )
-
-      expect(
-        removeCallIdFromParams(mockedAxios.post.mock.calls?.[0]?.[1])
-      ).toEqual({
-        cmd: 'SICIL_VEYA_MERNISTEN_BILGILERI_GETIR',
-        pageName: 'RG_BASITFATURA',
-        token: accessToken,
-        jp: JSON.stringify({
-          vknTcknn: trIdentityNumber
-        })
-      })
     })
   })
 
   describe('getSavedPhoneNumber()', () => {
     it('Erişim jetonu belirtilmediğinde hata fırlatmalı.', () => {
       expect(() => EInvoice.getSavedPhoneNumber()).rejects.toThrow(
-        EInvoiceError
+        EInvoiceTypeError
       )
     })
 
@@ -1638,18 +1657,17 @@ describe('EInvoiceApi', () => {
 
       expect(phoneNumber).toBe(expectedPhoneNumber)
 
-      expect(mockedAxios.post.mock.calls?.[0]?.[0]).toBe(
-        EInvoiceApi.DISPATCH_PATH
+      expect(mockedAxios.post).toHaveBeenCalledWith(
+        EInvoiceApi.DISPATCH_PATH,
+        qs.stringify({
+          cmd: 'EARSIV_PORTAL_TELEFONNO_SORGULA',
+          callid: mockUuidValue,
+          pageName: 'RG_BASITTASLAKLAR',
+          token: accessToken,
+          jp: '{}'
+        }),
+        getRequestConfig(EInvoice)
       )
-
-      expect(
-        removeCallIdFromParams(mockedAxios.post.mock.calls?.[0]?.[1])
-      ).toEqual({
-        cmd: 'EARSIV_PORTAL_TELEFONNO_SORGULA',
-        pageName: 'RG_BASITTASLAKLAR',
-        token: accessToken,
-        jp: '{}'
-      })
     })
   })
 
@@ -1660,11 +1678,8 @@ describe('EInvoiceApi', () => {
         uuid
       }) as unknown as BasicInvoice
 
-      const uuid1 = EInvoice.getInvoiceUuid(mockInvoice)
-      const uuid2 = EInvoice.getInvoiceUuid(mockInvoice.uuid)
-
-      expect(uuid1).toBe(uuid)
-      expect(uuid2).toBe(uuid)
+      expect(EInvoice.getInvoiceUuid(mockInvoice)).toBe(uuid)
+      expect(EInvoice.getInvoiceUuid(mockInvoice.uuid)).toBe(uuid)
     })
   })
 
@@ -1672,7 +1687,7 @@ describe('EInvoiceApi', () => {
     it('Erişim jetonu belirtilmediğinde hata fırlatmalı.', () => {
       expect(() =>
         EInvoice.createDraftInvoice({} as CreateDraftInvoicePayload)
-      ).rejects.toThrow(EInvoiceError)
+      ).rejects.toThrow(EInvoiceTypeError)
     })
 
     it("e-Arşiv'de taslak olarak bir fatura oluşturmalı.", async () => {
@@ -1710,18 +1725,17 @@ describe('EInvoiceApi', () => {
 
       expect(result).toBe(uuid)
 
-      expect(mockedAxios.post.mock.calls?.[0]?.[0]).toBe(
-        EInvoiceApi.DISPATCH_PATH
+      expect(mockedAxios.post).toHaveBeenCalledWith(
+        EInvoiceApi.DISPATCH_PATH,
+        qs.stringify({
+          cmd: 'EARSIV_PORTAL_FATURA_OLUSTUR',
+          callid: mockUuidValue,
+          pageName: 'RG_BASITFATURA',
+          token: accessToken,
+          jp: JSON.stringify(mappingDraftInvoiceKeys(invoicePayload))
+        }),
+        getRequestConfig(EInvoice)
       )
-
-      expect(
-        removeCallIdFromParams(mockedAxios.post.mock.calls?.[0]?.[1])
-      ).toEqual({
-        cmd: 'EARSIV_PORTAL_FATURA_OLUSTUR',
-        pageName: 'RG_BASITFATURA',
-        token: accessToken,
-        jp: JSON.stringify(mappingDraftInvoiceKeys(invoicePayload))
-      })
     })
   })
 
@@ -1729,7 +1743,7 @@ describe('EInvoiceApi', () => {
     it('Erişim jetonu belirtilmediğinde hata fırlatmalı.', () => {
       expect(() =>
         EInvoice.updateDraftInvoice('', {} as UpdateDraftInvoicePayload)
-      ).rejects.toThrow(EInvoiceError)
+      ).rejects.toThrow(EInvoiceTypeError)
     })
 
     it("e-Arşiv'de taslak olarak bulunan bir faturayı güncellemeli.", async () => {
@@ -1748,9 +1762,9 @@ describe('EInvoiceApi', () => {
         buyerLastName: 'Test Alıcı Soyadı'
       }
 
-      Object.defineProperty(EInvoice, 'getInvoice', {
-        value: () => Promise.resolve(mockInvoice)
-      })
+      jest
+        .spyOn(EInvoice, 'getInvoice')
+        .mockResolvedValue(mockInvoice as Invoice)
 
       mockedAxios.post.mockImplementation(() => {
         return Promise.resolve({
@@ -1767,23 +1781,22 @@ describe('EInvoiceApi', () => {
         ...updatePayload
       })
 
-      expect(mockedAxios.post.mock.calls?.[0]?.[0]).toBe(
-        EInvoiceApi.DISPATCH_PATH
+      expect(mockedAxios.post).toHaveBeenCalledWith(
+        EInvoiceApi.DISPATCH_PATH,
+        qs.stringify({
+          cmd: 'EARSIV_PORTAL_FATURA_OLUSTUR',
+          callid: mockUuidValue,
+          pageName: 'RG_BASITFATURA',
+          token: accessToken,
+          jp: JSON.stringify(
+            mappingDraftInvoiceKeys({
+              ...mockInvoice,
+              ...updatePayload
+            } as CreateDraftInvoicePayload)
+          )
+        }),
+        getRequestConfig(EInvoice)
       )
-
-      expect(
-        removeCallIdFromParams(mockedAxios.post.mock.calls?.[0]?.[1])
-      ).toEqual({
-        cmd: 'EARSIV_PORTAL_FATURA_OLUSTUR',
-        pageName: 'RG_BASITFATURA',
-        token: accessToken,
-        jp: JSON.stringify(
-          mappingDraftInvoiceKeys({
-            ...mockInvoice,
-            ...updatePayload
-          } as CreateDraftInvoicePayload)
-        )
-      })
     })
   })
 
@@ -1791,7 +1804,7 @@ describe('EInvoiceApi', () => {
     it('Erişim jetonu belirtilmediğinde hata fırlatmalı.', () => {
       expect(() =>
         EInvoice.deleteDraftInvoice({} as BasicInvoice, '')
-      ).rejects.toThrow(EInvoiceError)
+      ).rejects.toThrow(EInvoiceTypeError)
     })
 
     it("e-Arşiv'de taslak olarak bulunan bir faturayı silmeli.", async () => {
@@ -1818,23 +1831,22 @@ describe('EInvoiceApi', () => {
         deleteReason
       )
 
-      expect(result).toBeTruthy()
+      expect(result).toBe(true)
 
-      expect(mockedAxios.post.mock.calls?.[0]?.[0]).toBe(
-        EInvoiceApi.DISPATCH_PATH
+      expect(mockedAxios.post).toHaveBeenCalledWith(
+        EInvoiceApi.DISPATCH_PATH,
+        qs.stringify({
+          cmd: 'EARSIV_PORTAL_FATURA_SIL',
+          callid: mockUuidValue,
+          pageName: 'RG_TASLAKLAR',
+          token: accessToken,
+          jp: JSON.stringify({
+            silinecekler: [mappingBasicInvoiceKeys(mockInvoice, true)],
+            aciklama: deleteReason
+          })
+        }),
+        getRequestConfig(EInvoice)
       )
-
-      expect(
-        removeCallIdFromParams(mockedAxios.post.mock.calls?.[0]?.[1])
-      ).toEqual({
-        cmd: 'EARSIV_PORTAL_FATURA_SIL',
-        pageName: 'RG_TASLAKLAR',
-        token: accessToken,
-        jp: JSON.stringify({
-          silinecekler: [mappingBasicInvoiceKeys(mockInvoice, true)],
-          aciklama: deleteReason
-        })
-      })
     })
   })
 
@@ -1842,7 +1854,7 @@ describe('EInvoiceApi', () => {
     it('Erişim jetonu belirtilmediğinde hata fırlatmalı.', () => {
       expect(() =>
         EInvoice.createCancelRequestForInvoice({} as BasicInvoice, '')
-      ).rejects.toThrow(EInvoiceError)
+      ).rejects.toThrow(EInvoiceTypeError)
     })
 
     it('e-Arşiv fatura iptal talebi oluşturmalı.', async () => {
@@ -1869,31 +1881,30 @@ describe('EInvoiceApi', () => {
         cancelReason
       )
 
-      expect(result).toBeTruthy()
+      expect(result).toBe(true)
 
-      expect(mockedAxios.post.mock.calls?.[0]?.[0]).toBe(
-        EInvoiceApi.DISPATCH_PATH
+      expect(mockedAxios.post).toHaveBeenCalledWith(
+        EInvoiceApi.DISPATCH_PATH,
+        qs.stringify({
+          cmd: 'EARSIV_PORTAL_IPTAL_TALEBI_OLUSTUR',
+          callid: mockUuidValue,
+          pageName: 'RG_BASITTASLAKLAR',
+          token: accessToken,
+          jp: JSON.stringify({
+            ettn: uuid,
+            onayDurumu: mockInvoice.approvalStatus,
+            belgeTuru: mockInvoice.documentType,
+            talepAciklama: cancelReason
+          })
+        }),
+        getRequestConfig(EInvoice)
       )
-
-      expect(
-        removeCallIdFromParams(mockedAxios.post.mock.calls?.[0]?.[1])
-      ).toEqual({
-        cmd: 'EARSIV_PORTAL_IPTAL_TALEBI_OLUSTUR',
-        pageName: 'RG_BASITTASLAKLAR',
-        token: accessToken,
-        jp: JSON.stringify({
-          ettn: uuid,
-          onayDurumu: mockInvoice.approvalStatus,
-          belgeTuru: mockInvoice.documentType,
-          talepAciklama: cancelReason
-        })
-      })
     })
   })
 
   describe('sendSMSCode()', () => {
     it('Erişim jetonu belirtilmediğinde hata fırlatmalı.', () => {
-      expect(() => EInvoice.sendSMSCode()).rejects.toThrow(EInvoiceError)
+      expect(() => EInvoice.sendSMSCode()).rejects.toThrow(EInvoiceTypeError)
     })
 
     it('SMS ile doğrulama kodu göndermeli.', async () => {
@@ -1921,22 +1932,21 @@ describe('EInvoiceApi', () => {
 
       expect(result).toBe(mockOid)
 
-      expect(mockedAxios.post.mock.calls?.[0]?.[0]).toBe(
-        EInvoiceApi.DISPATCH_PATH
+      expect(mockedAxios.post).toHaveBeenCalledWith(
+        EInvoiceApi.DISPATCH_PATH,
+        qs.stringify({
+          cmd: 'EARSIV_PORTAL_SMSSIFRE_GONDER',
+          callid: mockUuidValue,
+          pageName: 'RG_SMSONAY',
+          token: accessToken,
+          jp: JSON.stringify({
+            CEPTEL: mockPhoneNumber,
+            KCEPTEL: false,
+            TIP: ''
+          })
+        }),
+        getRequestConfig(EInvoice)
       )
-
-      expect(
-        removeCallIdFromParams(mockedAxios.post.mock.calls?.[0]?.[1])
-      ).toEqual({
-        cmd: 'EARSIV_PORTAL_SMSSIFRE_GONDER',
-        pageName: 'RG_SMSONAY',
-        token: accessToken,
-        jp: JSON.stringify({
-          CEPTEL: mockPhoneNumber,
-          KCEPTEL: false,
-          TIP: ''
-        })
-      })
     })
   })
 
@@ -1944,7 +1954,7 @@ describe('EInvoiceApi', () => {
     it('Erişim jetonu belirtilmediğinde hata fırlatmalı.', () => {
       expect(() =>
         EInvoice.verifySMSCode('', '', {} as BasicInvoice)
-      ).rejects.toThrow(EInvoiceError)
+      ).rejects.toThrow(EInvoiceTypeError)
     })
 
     it('SMS ile gönderilen doğrulama kodunu onaylamalı ve fatura(ları) imzalamalı.', async () => {
@@ -1975,25 +1985,24 @@ describe('EInvoiceApi', () => {
         mockInvoice
       )
 
-      expect(result).toBeTruthy()
+      expect(result).toBe(true)
 
-      expect(mockedAxios.post.mock.calls?.[0]?.[0]).toBe(
-        EInvoiceApi.DISPATCH_PATH
+      expect(mockedAxios.post).toHaveBeenCalledWith(
+        EInvoiceApi.DISPATCH_PATH,
+        qs.stringify({
+          cmd: '0lhozfib5410mp',
+          callid: mockUuidValue,
+          pageName: 'RG_SMSONAY',
+          token: accessToken,
+          jp: JSON.stringify({
+            SIFRE: mockSMSCode,
+            OID: mockSMSOid,
+            OPR: 1,
+            DATA: [mappingBasicInvoiceKeys(mockInvoice, true)]
+          })
+        }),
+        getRequestConfig(EInvoice)
       )
-
-      expect(
-        removeCallIdFromParams(mockedAxios.post.mock.calls?.[0]?.[1])
-      ).toEqual({
-        cmd: '0lhozfib5410mp',
-        pageName: 'RG_SMSONAY',
-        token: accessToken,
-        jp: JSON.stringify({
-          SIFRE: mockSMSCode,
-          OID: mockSMSOid,
-          OPR: 1,
-          DATA: [mappingBasicInvoiceKeys(mockInvoice, true)]
-        })
-      })
     })
   })
 

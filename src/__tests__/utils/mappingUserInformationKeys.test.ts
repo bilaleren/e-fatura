@@ -1,27 +1,27 @@
-import EInvoiceError from '../../errors/EInvoiceError'
+import EInvoiceTypeError from '../../errors/EInvoiceTypeError'
 import mappingUserInformationKeys from '../../utils/mappingUserInformationKeys'
 
 describe('mappingUserInformationKeys()', () => {
   it('Kullanıcı bilgileri obje olmadığında hata fırlatmalı.', () => {
     expect(() => {
       mappingUserInformationKeys('')
-    }).toThrow(EInvoiceError)
+    }).toThrow(EInvoiceTypeError)
 
     expect(() => {
       mappingUserInformationKeys(0)
-    }).toThrow(EInvoiceError)
+    }).toThrow(EInvoiceTypeError)
 
     expect(() => {
       mappingUserInformationKeys(null)
-    }).toThrow(EInvoiceError)
+    }).toThrow(EInvoiceTypeError)
 
     expect(() => {
       mappingUserInformationKeys(undefined)
-    }).toThrow(EInvoiceError)
+    }).toThrow(EInvoiceTypeError)
 
     expect(() => {
       mappingUserInformationKeys(false)
-    }).toThrow(EInvoiceError)
+    }).toThrow(EInvoiceTypeError)
   })
 
   it('Kullanıcı bilgileri anahtarlarını ingilizce anahtarlar ile değiştirmeli.', () => {

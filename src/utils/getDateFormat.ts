@@ -1,4 +1,4 @@
-import EInvoiceError from '../errors/EInvoiceError'
+import EInvoiceTypeError from '../errors/EInvoiceTypeError'
 
 const DATE_FORMAT_PATTERN = /^(\d{2}\/\d{2}\/\d{4}|\d{2}:\d{2}:\d{2})$/
 
@@ -21,7 +21,7 @@ function getDateFormat(
   }
 
   if (`${date}` === 'Invalid Date') {
-    throw new EInvoiceError('Geçersiz tarih.')
+    throw new EInvoiceTypeError('Geçersiz tarih.')
   }
 
   const day = `${date.getDate()}`.padStart(2, '0')

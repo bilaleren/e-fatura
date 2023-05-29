@@ -1,8 +1,18 @@
-const jestConfig = {
-  verbose: true,
+/** @type {import('@jest/types').Config} */
+const config = {
   preset: 'ts-jest',
-  roots: ['./src'],
+  moduleFileExtensions: ['js', 'ts', 'tsx', 'json'],
+  rootDir: './src',
+  testRegex: '.*\\.test\\.ts(x)?$',
+  transform: {
+    '^.+\\.ts$': [
+      'ts-jest',
+      {
+        isolatedModules: true
+      }
+    ]
+  },
   testEnvironment: 'node'
 }
 
-module.exports = jestConfig
+module.exports = config
