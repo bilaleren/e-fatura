@@ -3,10 +3,10 @@
 Faturanın indirme bağlantısını verir. .zip uzantılı bir dosya indirilir.
 
 ```typescript
-import EInvoice, { BasicInvoice } from 'e-fatura'
+import EInvoice, { BasicInvoice, InvoiceOrUuid } from 'e-fatura'
 
 // Fatura veya faturaya ait UUID
-const invoiceOrUuid: BasicInvoice | string = ''
+const invoiceOrUuid: InvoiceOrUuid = ''
 
 const downloadUrl: string = await EInvoice.getInvoiceDownloadUrl(
   invoiceOrUuid,

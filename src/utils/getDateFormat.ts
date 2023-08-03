@@ -24,12 +24,12 @@ function getDateFormat(
     throw new EInvoiceTypeError('Geçersiz tarih.')
   }
 
-  const day = `${date.getDate()}`.padStart(2, '0')
-  const month = `${date.getMonth() + 1}`.padStart(2, '0')
+  const day = date.getDate().toString().padStart(2, '0')
+  const month = (date.getMonth() + 1).toString().padStart(2, '0')
   const year = date.getFullYear()
-  const hours = `${date.getHours()}`.padStart(2, '0')
-  const minutes = `${date.getMinutes()}`.padStart(2, '0')
-  const seconds = `${date.getSeconds()}`.padStart(2, '0')
+  const hours = date.getHours().toString().padStart(2, '0')
+  const minutes = date.getMinutes().toString().padStart(2, '0')
+  const seconds = date.getSeconds().toString().padStart(2, '0')
 
   if (format === undefined || format === 'date') {
     return `${day}/${month}/${year}`

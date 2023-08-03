@@ -81,12 +81,9 @@ describe('EInvoiceApi', () => {
 
       EInvoice.setToken(accessToken)
 
-      mockedAxios.post.mockImplementation(() => {
-        // eslint-disable-next-line prefer-promise-reject-errors
-        return Promise.reject({
-          data: null,
-          status: 500
-        })
+      mockedAxios.post.mockRejectedValue({
+        data: null,
+        status: 500
       })
 
       try {
@@ -127,15 +124,13 @@ describe('EInvoiceApi', () => {
 
       EInvoice.setToken(accessToken)
 
-      mockedAxios.post.mockImplementation(() => {
-        return Promise.resolve({
-          data: {
-            error: '1',
-            messages: []
-          },
-          status: 200,
-          statusText: 'Success'
-        })
+      mockedAxios.post.mockResolvedValue({
+        data: {
+          error: '1',
+          messages: []
+        },
+        status: 200,
+        statusText: 'Success'
       })
 
       try {
@@ -292,12 +287,10 @@ describe('EInvoiceApi', () => {
 
         const testToken = 'testToken'
 
-        mockedAxios.post.mockImplementation(() => {
-          return Promise.resolve({
-            data: {
-              token: testToken
-            }
-          })
+        mockedAxios.post.mockResolvedValue({
+          data: {
+            token: testToken
+          }
         })
 
         const token = await EInvoice.getAccessToken()
@@ -309,12 +302,12 @@ describe('EInvoiceApi', () => {
         expect(mockedAxios.post).toHaveBeenCalledWith(
           EInvoiceApi.TOKEN_PATH,
           qs.stringify({
-            assoscmd: 'login',
             rtype: 'json',
             userid: credentials.username,
             sifre: credentials.password,
             sifre2: credentials.password,
-            parola: '1'
+            parola: '1',
+            assoscmd: 'login'
           }),
           getRequestConfig(EInvoice)
         )
@@ -330,12 +323,10 @@ describe('EInvoiceApi', () => {
 
         const credentials = EInvoice.getCredentials()
 
-        mockedAxios.post.mockImplementation(() => {
-          return Promise.resolve({
-            data: {
-              token: null
-            }
-          })
+        mockedAxios.post.mockResolvedValue({
+          data: {
+            token: null
+          }
         })
 
         await expect(() => EInvoice.getAccessToken()).rejects.toThrow(
@@ -345,12 +336,12 @@ describe('EInvoiceApi', () => {
         expect(mockedAxios.post).toHaveBeenCalledWith(
           EInvoiceApi.TOKEN_PATH,
           qs.stringify({
-            assoscmd: 'login',
             rtype: 'json',
             userid: credentials.username,
             sifre: credentials.password,
             sifre2: credentials.password,
-            parola: '1'
+            parola: '1',
+            assoscmd: 'login'
           }),
           getRequestConfig(EInvoice)
         )
@@ -366,12 +357,10 @@ describe('EInvoiceApi', () => {
 
         const credentials = EInvoice.getCredentials()
 
-        mockedAxios.post.mockImplementation(() => {
-          return Promise.resolve({
-            data: {
-              token: ''
-            }
-          })
+        mockedAxios.post.mockResolvedValue({
+          data: {
+            token: ''
+          }
         })
 
         await expect(() => EInvoice.getAccessToken()).rejects.toThrow(
@@ -381,12 +370,12 @@ describe('EInvoiceApi', () => {
         expect(mockedAxios.post).toHaveBeenCalledWith(
           EInvoiceApi.TOKEN_PATH,
           qs.stringify({
-            assoscmd: 'login',
             rtype: 'json',
             userid: credentials.username,
             sifre: credentials.password,
             sifre2: credentials.password,
-            parola: '1'
+            parola: '1',
+            assoscmd: 'login'
           }),
           getRequestConfig(EInvoice)
         )
@@ -404,12 +393,10 @@ describe('EInvoiceApi', () => {
 
         const testToken = 'testToken'
 
-        mockedAxios.post.mockImplementation(() => {
-          return Promise.resolve({
-            data: {
-              token: testToken
-            }
-          })
+        mockedAxios.post.mockResolvedValue({
+          data: {
+            token: testToken
+          }
         })
 
         const token = await EInvoice.getAccessToken()
@@ -421,12 +408,12 @@ describe('EInvoiceApi', () => {
         expect(mockedAxios.post).toHaveBeenCalledWith(
           EInvoiceApi.TOKEN_PATH,
           qs.stringify({
-            assoscmd: 'anologin',
             rtype: 'json',
             userid: credentials.username,
             sifre: credentials.password,
             sifre2: credentials.password,
-            parola: '1'
+            parola: '1',
+            assoscmd: 'anologin'
           }),
           getRequestConfig(EInvoice)
         )
@@ -442,12 +429,10 @@ describe('EInvoiceApi', () => {
 
         const credentials = EInvoice.getCredentials()
 
-        mockedAxios.post.mockImplementation(() => {
-          return Promise.resolve({
-            data: {
-              token: null
-            }
-          })
+        mockedAxios.post.mockResolvedValue({
+          data: {
+            token: null
+          }
         })
 
         await expect(() => EInvoice.getAccessToken()).rejects.toThrow(
@@ -457,12 +442,12 @@ describe('EInvoiceApi', () => {
         expect(mockedAxios.post).toHaveBeenCalledWith(
           EInvoiceApi.TOKEN_PATH,
           qs.stringify({
-            assoscmd: 'anologin',
             rtype: 'json',
             userid: credentials.username,
             sifre: credentials.password,
             sifre2: credentials.password,
-            parola: '1'
+            parola: '1',
+            assoscmd: 'anologin'
           }),
           getRequestConfig(EInvoice)
         )
@@ -478,12 +463,10 @@ describe('EInvoiceApi', () => {
 
         const credentials = EInvoice.getCredentials()
 
-        mockedAxios.post.mockImplementation(() => {
-          return Promise.resolve({
-            data: {
-              token: ''
-            }
-          })
+        mockedAxios.post.mockResolvedValue({
+          data: {
+            token: ''
+          }
         })
 
         await expect(() => EInvoice.getAccessToken()).rejects.toThrow(
@@ -493,12 +476,12 @@ describe('EInvoiceApi', () => {
         expect(mockedAxios.post).toHaveBeenCalledWith(
           EInvoiceApi.TOKEN_PATH,
           qs.stringify({
-            assoscmd: 'anologin',
             rtype: 'json',
             userid: credentials.username,
             sifre: credentials.password,
             sifre2: credentials.password,
-            parola: '1'
+            parola: '1',
+            assoscmd: 'anologin'
           }),
           getRequestConfig(EInvoice)
         )
@@ -524,12 +507,10 @@ describe('EInvoiceApi', () => {
         mappingWithTurkishKeys: true
       })
 
-      mockedAxios.post.mockImplementation(() => {
-        return Promise.resolve({
-          data: {
-            data: mockInvoice
-          }
-        })
+      mockedAxios.post.mockResolvedValue({
+        data: {
+          data: mockInvoice
+        }
       })
 
       const invoice = await EInvoice.getInvoice(
@@ -568,12 +549,10 @@ describe('EInvoiceApi', () => {
         mappingWithTurkishKeys: true
       })
 
-      mockedAxios.post.mockImplementation(() => {
-        return Promise.resolve({
-          data: {
-            data: mockInvoice
-          }
-        })
+      mockedAxios.post.mockResolvedValue({
+        data: {
+          data: mockInvoice
+        }
       })
 
       const invoice = await EInvoice.getInvoice(uuid)
@@ -613,15 +592,13 @@ describe('EInvoiceApi', () => {
         mappingWithTurkishKeys: true
       })
 
-      mockedAxios.post.mockImplementation(() => {
-        return Promise.resolve({
+      mockedAxios.post.mockResolvedValue({
+        data: {
           data: {
-            data: {
-              ...mockInvoice,
-              hata: 'hata'
-            }
+            ...mockInvoice,
+            hata: 'hata'
           }
-        })
+        }
       })
 
       await expect(() => EInvoice.getInvoice(uuid)).rejects.toThrow(
@@ -656,25 +633,22 @@ describe('EInvoiceApi', () => {
 
       expect(EInvoice.getToken()).toBe(accessToken)
 
-      mockedAxios.post.mockImplementation(() => {
-        return Promise.resolve({
-          data: {
-            data: {}
-          }
-        })
+      mockedAxios.post.mockResolvedValue({
+        data: {
+          data: {}
+        }
       })
 
-      const result = await EInvoice.logout()
+      await EInvoice.logout()
 
-      expect(result).toBe(true)
       expect(EInvoice.getToken()).toBeNull()
 
       expect(mockedAxios.post).toHaveBeenCalledWith(
         EInvoiceApi.TOKEN_PATH,
         qs.stringify({
-          assoscmd: 'logout',
           rtype: 'json',
-          token: accessToken
+          token: accessToken,
+          assoscmd: 'logout'
         }),
         getRequestConfig(EInvoice)
       )
@@ -695,12 +669,10 @@ describe('EInvoiceApi', () => {
 
       const mockInvoices = generateMockInvoices()
 
-      mockedAxios.post.mockImplementation(() => {
-        return Promise.resolve({
-          data: {
-            data: mockInvoices
-          }
-        })
+      mockedAxios.post.mockResolvedValue({
+        data: {
+          data: mockInvoices
+        }
       })
 
       const invoices = await EInvoice.getBasicInvoices()
@@ -741,12 +713,10 @@ describe('EInvoiceApi', () => {
 
       const endDate = new Date()
 
-      mockedAxios.post.mockImplementation(() => {
-        return Promise.resolve({
-          data: {
-            data: mockInvoices
-          }
-        })
+      mockedAxios.post.mockResolvedValue({
+        data: {
+          data: mockInvoices
+        }
       })
 
       const invoices = await EInvoice.getBasicInvoices({
@@ -785,12 +755,10 @@ describe('EInvoiceApi', () => {
 
       const mockInvoices = generateMockInvoices()
 
-      mockedAxios.post.mockImplementation(() => {
-        return Promise.resolve({
-          data: {
-            data: mockInvoices
-          }
-        })
+      mockedAxios.post.mockResolvedValue({
+        data: {
+          data: mockInvoices
+        }
       })
 
       async function expectInvoicesFromApprovalStatus(
@@ -850,12 +818,10 @@ describe('EInvoiceApi', () => {
 
       const mockInvoices = generateMockInvoices()
 
-      mockedAxios.post.mockImplementation(() => {
-        return Promise.resolve({
-          data: {
-            data: mockInvoices
-          }
-        })
+      mockedAxios.post.mockResolvedValue({
+        data: {
+          data: mockInvoices
+        }
       })
 
       const invoices = await EInvoice.getBasicInvoicesIssuedToMe()
@@ -896,12 +862,10 @@ describe('EInvoiceApi', () => {
 
       const endDate = new Date()
 
-      mockedAxios.post.mockImplementation(() => {
-        return Promise.resolve({
-          data: {
-            data: mockInvoices
-          }
-        })
+      mockedAxios.post.mockResolvedValue({
+        data: {
+          data: mockInvoices
+        }
       })
 
       const invoices = await EInvoice.getBasicInvoicesIssuedToMe({
@@ -940,12 +904,10 @@ describe('EInvoiceApi', () => {
 
       const mockInvoices = generateMockInvoices()
 
-      mockedAxios.post.mockImplementation(() => {
-        return Promise.resolve({
-          data: {
-            data: mockInvoices
-          }
-        })
+      mockedAxios.post.mockResolvedValue({
+        data: {
+          data: mockInvoices
+        }
       })
 
       async function expectInvoicesFromApprovalStatus(
@@ -1006,12 +968,10 @@ describe('EInvoiceApi', () => {
       const mockInvoices = generateMockInvoices()
       const mockInvoice = mockInvoices[0]
 
-      mockedAxios.post.mockImplementation(() => {
-        return Promise.resolve({
-          data: {
-            data: mockInvoices
-          }
-        })
+      mockedAxios.post.mockResolvedValue({
+        data: {
+          data: mockInvoices
+        }
       })
 
       const invoice = await EInvoice.findBasicInvoice(
@@ -1029,12 +989,10 @@ describe('EInvoiceApi', () => {
       const mockInvoices = generateMockInvoices()
       const mockInvoice = mockInvoices[0]
 
-      mockedAxios.post.mockImplementation(() => {
-        return Promise.resolve({
-          data: {
-            data: mockInvoices
-          }
-        })
+      mockedAxios.post.mockResolvedValue({
+        data: {
+          data: mockInvoices
+        }
       })
 
       const invoice = await EInvoice.findBasicInvoice(
@@ -1137,12 +1095,10 @@ describe('EInvoiceApi', () => {
 
       const expectedHTML = '<b>Fatura HTML.</b>'
 
-      mockedAxios.post.mockImplementation(() => {
-        return Promise.resolve({
-          data: {
-            data: expectedHTML
-          }
-        })
+      mockedAxios.post.mockResolvedValue({
+        data: {
+          data: expectedHTML
+        }
       })
 
       const uuid = uuidV1()
@@ -1178,12 +1134,10 @@ describe('EInvoiceApi', () => {
 
       const expectedHTML = '<b>Fatura HTML.</b>'
 
-      mockedAxios.post.mockImplementation(() => {
-        return Promise.resolve({
-          data: {
-            data: expectedHTML
-          }
-        })
+      mockedAxios.post.mockResolvedValue({
+        data: {
+          data: expectedHTML
+        }
       })
 
       const uuid = uuidV1()
@@ -1220,12 +1174,10 @@ describe('EInvoiceApi', () => {
       </html>
       `
 
-      mockedAxios.post.mockImplementation(() => {
-        return Promise.resolve({
-          data: {
-            data: expectedHTML
-          }
-        })
+      mockedAxios.post.mockResolvedValue({
+        data: {
+          data: expectedHTML
+        }
       })
 
       const uuid = uuidV1()
@@ -1277,12 +1229,10 @@ describe('EInvoiceApi', () => {
       const expectedHTML = '<b>Fatura HTML.</b>'
       const expectedPDFBuffer = Buffer.from(expectedHTML)
 
-      mockedAxios.post.mockImplementation(() => {
-        return Promise.resolve({
-          data: {
-            data: expectedHTML
-          }
-        })
+      mockedAxios.post.mockResolvedValue({
+        data: {
+          data: expectedHTML
+        }
       })
 
       mockedPuppeteer.launch.mockResolvedValue({
@@ -1332,12 +1282,10 @@ describe('EInvoiceApi', () => {
       const expectedHTML = '<b>Fatura HTML.</b>'
       const expectedPDFBuffer = Buffer.from(expectedHTML)
 
-      mockedAxios.post.mockImplementation(() => {
-        return Promise.resolve({
-          data: {
-            data: expectedHTML
-          }
-        })
+      mockedAxios.post.mockResolvedValue({
+        data: {
+          data: expectedHTML
+        }
       })
 
       mockedPuppeteer.launch.mockResolvedValue({
@@ -1398,8 +1346,8 @@ describe('EInvoiceApi', () => {
         token: accessToken,
         ettn: uuid,
         belgeTip: 'FATURA',
-        onayDurumu: 'Onaylandı',
-        cmd: 'EARSIV_PORTAL_BELGE_INDIR'
+        cmd: 'EARSIV_PORTAL_BELGE_INDIR',
+        onayDurumu: 'Onaylandı'
       }
 
       expect(downloadUrl).toBe(
@@ -1421,8 +1369,8 @@ describe('EInvoiceApi', () => {
         token: accessToken,
         ettn: uuid,
         belgeTip: 'FATURA',
-        onayDurumu: 'Onaylanmadı',
-        cmd: 'EARSIV_PORTAL_BELGE_INDIR'
+        cmd: 'EARSIV_PORTAL_BELGE_INDIR',
+        onayDurumu: 'Onaylanmadı'
       }
 
       expect(downloadUrl).toBe(
@@ -1469,12 +1417,10 @@ describe('EInvoiceApi', () => {
         businessCenter: 'businessCenter'
       }
 
-      mockedAxios.post.mockImplementation(() => {
-        return Promise.resolve({
-          data: {
-            data: mappingUserInformationKeys(mockUserInformation, true)
-          }
-        })
+      mockedAxios.post.mockResolvedValue({
+        data: {
+          data: mappingUserInformationKeys(mockUserInformation, true)
+        }
       })
 
       const userInformation = await EInvoice.getUserInformation()
@@ -1537,16 +1483,14 @@ describe('EInvoiceApi', () => {
         lastName: 'updatedLastName'
       }
 
-      Object.defineProperty(EInvoice, 'getUserInformation', {
-        value: () => Promise.resolve(mockUserInformation)
-      })
+      const getUserInformationFn = jest
+        .spyOn(EInvoice, 'getUserInformation')
+        .mockResolvedValue(mockUserInformation)
 
-      mockedAxios.post.mockImplementation(() => {
-        return Promise.resolve({
-          data: {
-            data: 'Bilgileriniz başarıyla güncellendi.'
-          }
-        })
+      mockedAxios.post.mockResolvedValue({
+        data: {
+          data: 'Bilgileriniz başarıyla güncellendi.'
+        }
       })
 
       const newUserInformation = await EInvoice.updateUserInformation(
@@ -1557,6 +1501,8 @@ describe('EInvoiceApi', () => {
         ...mockUserInformation,
         ...mockUpdateUserInformation
       })
+
+      expect(getUserInformationFn).toBeCalledTimes(1)
 
       expect(mockedAxios.post).toHaveBeenCalledWith(
         EInvoiceApi.DISPATCH_PATH,
@@ -1600,12 +1546,10 @@ describe('EInvoiceApi', () => {
         taxOffice: 'taxOffice'
       }
 
-      mockedAxios.post.mockImplementation(() => {
-        return Promise.resolve({
-          data: {
-            data: mappingCompanyInformationKeys(mockCompanyInformation, true)
-          }
-        })
+      mockedAxios.post.mockResolvedValue({
+        data: {
+          data: mappingCompanyInformationKeys(mockCompanyInformation, true)
+        }
       })
 
       const companyInformation = await EInvoice.getCompanyInformation(
@@ -1643,14 +1587,12 @@ describe('EInvoiceApi', () => {
 
       EInvoice.setToken(accessToken)
 
-      mockedAxios.post.mockImplementation(() => {
-        return Promise.resolve({
+      mockedAxios.post.mockResolvedValue({
+        data: {
           data: {
-            data: {
-              telefon: expectedPhoneNumber
-            }
+            telefon: expectedPhoneNumber
           }
-        })
+        }
       })
 
       const phoneNumber = await EInvoice.getSavedPhoneNumber()
@@ -1713,12 +1655,10 @@ describe('EInvoiceApi', () => {
         productsTotalPrice: 10
       }
 
-      mockedAxios.post.mockImplementation(() => {
-        return Promise.resolve({
-          data: {
-            data: 'Faturanız başarıyla oluşturulmuştur'
-          }
-        })
+      mockedAxios.post.mockResolvedValue({
+        data: {
+          data: 'Faturanız başarıyla oluşturulmuştur'
+        }
       })
 
       const result = await EInvoice.createDraftInvoice(invoicePayload)
@@ -1762,16 +1702,14 @@ describe('EInvoiceApi', () => {
         buyerLastName: 'Test Alıcı Soyadı'
       }
 
-      jest
+      const getInvoiceFn = jest
         .spyOn(EInvoice, 'getInvoice')
         .mockResolvedValue(mockInvoice as Invoice)
 
-      mockedAxios.post.mockImplementation(() => {
-        return Promise.resolve({
-          data: {
-            data: 'Faturanız başarıyla oluşturulmuştur'
-          }
-        })
+      mockedAxios.post.mockResolvedValue({
+        data: {
+          data: 'Faturanız başarıyla oluşturulmuştur'
+        }
       })
 
       const newInvoice = await EInvoice.updateDraftInvoice(uuid, updatePayload)
@@ -1780,6 +1718,8 @@ describe('EInvoiceApi', () => {
         ...mockInvoice,
         ...updatePayload
       })
+
+      expect(getInvoiceFn).toBeCalledTimes(1)
 
       expect(mockedAxios.post).toHaveBeenCalledWith(
         EInvoiceApi.DISPATCH_PATH,
@@ -1818,12 +1758,10 @@ describe('EInvoiceApi', () => {
         uuid
       }) as unknown as BasicInvoice
 
-      mockedAxios.post.mockImplementation(() => {
-        return Promise.resolve({
-          data: {
-            data: '1 fatura başarıyla silindi.'
-          }
-        })
+      mockedAxios.post.mockResolvedValue({
+        data: {
+          data: '1 fatura başarıyla silindi.'
+        }
       })
 
       const result = await EInvoice.deleteDraftInvoice(
@@ -1868,12 +1806,10 @@ describe('EInvoiceApi', () => {
         uuid
       }) as unknown as BasicInvoice
 
-      mockedAxios.post.mockImplementation(() => {
-        return Promise.resolve({
-          data: {
-            data: 'İptal talebiniz başarıyla oluşturulmuş'
-          }
-        })
+      mockedAxios.post.mockResolvedValue({
+        data: {
+          data: 'İptal talebiniz başarıyla oluşturulmuş'
+        }
       })
 
       const result = await EInvoice.createCancelRequestForInvoice(
@@ -1914,23 +1850,23 @@ describe('EInvoiceApi', () => {
 
       EInvoice.setToken(accessToken)
 
-      Object.defineProperty(EInvoice, 'getSavedPhoneNumber', {
-        value: () => Promise.resolve(mockPhoneNumber)
-      })
+      const getSavedPhoneNumberFn = jest
+        .spyOn(EInvoice, 'getSavedPhoneNumber')
+        .mockResolvedValue(mockPhoneNumber)
 
-      mockedAxios.post.mockImplementation(() => {
-        return Promise.resolve({
+      mockedAxios.post.mockResolvedValue({
+        data: {
           data: {
-            data: {
-              oid: mockOid
-            }
+            oid: mockOid
           }
-        })
+        }
       })
 
       const result = await EInvoice.sendSMSCode()
 
       expect(result).toBe(mockOid)
+
+      expect(getSavedPhoneNumberFn).toBeCalledTimes(1)
 
       expect(mockedAxios.post).toHaveBeenCalledWith(
         EInvoiceApi.DISPATCH_PATH,
@@ -1969,14 +1905,12 @@ describe('EInvoiceApi', () => {
         uuid
       }) as unknown as BasicInvoice
 
-      mockedAxios.post.mockImplementation(() => {
-        return Promise.resolve({
+      mockedAxios.post.mockResolvedValue({
+        data: {
           data: {
-            data: {
-              sonuc: '1'
-            }
+            sonuc: '1'
           }
-        })
+        }
       })
 
       const result = await EInvoice.verifySMSCode(
@@ -2010,12 +1944,10 @@ describe('EInvoiceApi', () => {
     it('Test ortamı için anonim kullanıcı adı ve şifre atamalı.', async () => {
       const mockUsername = uuidV1()
 
-      mockedAxios.post.mockImplementation(() => {
-        return Promise.resolve({
-          data: {
-            userid: mockUsername
-          }
-        })
+      mockedAxios.post.mockResolvedValue({
+        data: {
+          userid: mockUsername
+        }
       })
 
       await EInvoice.setAnonymousCredentials()

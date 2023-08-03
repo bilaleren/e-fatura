@@ -112,7 +112,7 @@ await EInvoice.logout()
 
 ## Hata Ayıklama
 
-API taraflı veya doğrulama sonucunda oluşacak hataları ayıklama.
+API ve tür hatalarının ayıklanması.
 
 ```typescript
 import EInvoice, {

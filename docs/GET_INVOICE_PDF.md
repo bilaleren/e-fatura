@@ -13,10 +13,10 @@ Faturanın PDF çıktısını alabilmek için [Puppeteer](https://pptr.dev/) adl
 ```typescript
 import fs from 'fs/promises'
 import path from 'path'
-import EInvoice, { BasicInvoice } from 'e-fatura'
+import EInvoice, { BasicInvoice, InvoiceOrUuid } from 'e-fatura'
 
 // Fatura veya faturaya ait UUID
-const invoiceOrUuid: BasicInvoice | string = ''
+const invoiceOrUuid: InvoiceOrUuid = ''
 
 const pdfBuffer: Buffer = await EInvoice.getInvoicePDF(
   invoiceOrUuid,

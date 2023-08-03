@@ -1,6 +1,7 @@
 import qs from 'node:querystring'
 import { v1 as uuidV1 } from 'uuid'
 import deepMerge from 'lodash.merge'
+import wrapArray from './utils/wrapArray'
 import isPlainObject from './utils/isPlainObject'
 import getDateFormat from './utils/getDateFormat'
 import htmlToPdf, { PDFOptions } from './utils/htmlToPdf'
@@ -137,20 +138,18 @@ class EInvoiceApi {
   /**
    * e-Arşiv oturumunu sonlandırır.
    */
-  async logout(): Promise<boolean> {
+  async logout(): Promise<void> {
     this.checkToken()
 
     const params: Record<string, string> = {
-      assoscmd: 'logout',
       rtype: 'json',
-      token: this.token!
+      token: this.token!,
+      assoscmd: 'logout'
     }
 
     await this.sendRequest(EInvoiceApi.TOKEN_PATH, params)
 
     this.token = null
-
-    return true
   }
 
   /**
@@ -160,12 +159,12 @@ class EInvoiceApi {
     this.checkCredentials()
 
     const params: Record<string, string> = {
-      assoscmd: this.testMode ? 'login' : 'anologin',
       rtype: 'json',
       userid: this.username!,
       sifre: this.password!,
       sifre2: this.password!,
-      parola: '1'
+      parola: '1',
+      assoscmd: this.testMode ? 'login' : 'anologin'
     }
 
     const data = await this.sendRequest<{ token?: unknown }>(
@@ -373,7 +372,7 @@ class EInvoiceApi {
 
     if (typeof data.data !== 'string' || data.data === '') {
       throw new EInvoiceApiError('Faturaya ait HTML içeriği alınamadı.', {
-        data: data,
+        data,
         errorCode: EInvoiceApiErrorCode.INVALID_INVOICE_HTML
       })
     }
@@ -419,8 +418,8 @@ class EInvoiceApi {
       token: this.token!,
       ettn: this.getInvoiceUuid(invoiceOrUuid),
       belgeTip: 'FATURA',
-      onayDurumu: signed ? 'Onaylandı' : 'Onaylanmadı',
-      cmd: 'EARSIV_PORTAL_BELGE_INDIR'
+      cmd: 'EARSIV_PORTAL_BELGE_INDIR',
+      onayDurumu: signed ? 'Onaylandı' : 'Onaylanmadı'
     }
 
     return `${this.getBaseURL()}/earsiv-services/download?${qs.stringify(
@@ -799,7 +798,7 @@ class EInvoiceApi {
         SIFRE: code,
         OID: oid,
         OPR: 1,
-        DATA: ([] as BasicInvoice[]).concat(invoice).map((value) => {
+        DATA: wrapArray(invoice).map((value) => {
           return mappingBasicInvoiceKeys(value, true)
         })
       })

@@ -10,8 +10,8 @@ import EInvoice, {
 } from 'e-fatura'
 
 const filter: FilterBasicInvoices = {
-  startDate: new Date(), // Tarih veya Gün/Ay/Yıl formatında tarih.
-  endDate: '04/04/2023', // Tarih veya Gün/Ay/Yıl formatında tarih.
+  startDate: new Date(), // Tarih (Date örneği) veya Gün/Ay/Yıl formatında bir dize.
+  endDate: '04/04/2023', // Tarih (Date örneği) veya Gün/Ay/Yıl formatında bir dize.
   approvalStatus: InvoiceApprovalStatus.APPROVED // Onaylanan (imzalanan) faturalar.
 }
 

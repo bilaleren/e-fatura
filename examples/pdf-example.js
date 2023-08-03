@@ -37,7 +37,7 @@ async function bootstrap() {
 
   await fs.writeFile(invoicePath, pdfBuffer)
 
-  console.log('Fatura PDF kaydedildi:', invoicePath)
+  console.log('Fatura kaydedildi:', invoicePath)
 
   await EInvoice.logout()
 }

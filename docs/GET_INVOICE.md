@@ -5,11 +5,12 @@ e-Arşiv üzerinde bulunan bir faturanın tüm bilgilerini (ürünler, fiyatlar,
 ```typescript
 import EInvoice, {
   Invoice,
-  BasicInvoice
+  BasicInvoice,
+  InvoiceOrUuid
 } from 'e-fatura'
 
 // Bulunacak fatura veya faturaya ait UUID
-const invoiceOrUuid: BasicInvoice | string = ''
+const invoiceOrUuid: InvoiceOrUuid = ''
 
 const invoice: Invoice = await EInvoice.getInvoice(invoiceOrUuid)
 

@@ -10,7 +10,7 @@ const invoice: BasicInvoice = {}
 
 const cancelRequestResult: boolean = await EInvoice.createCancelRequestForInvoice(
   invoice,
-  'İade işlemi' // İpta talebi nedeni
+  'İade işlemi' // İptal talebi nedeni
 )
 
 console.log(

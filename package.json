@@ -1,6 +1,6 @@
 {
   "name": "e-fatura",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "e-Arşiv üzerinden fatura oluşturur, faturaları listeler, fatura(ları) imzalar ve daha fazlasını yapar.",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -12,6 +12,8 @@
   "keywords": [
     "e-arşiv",
     "e-fatura",
+    "js e-arşiv",
+    "js e-fatura",
     "javascript e-arşiv",
     "javascript e-fatura"
   ],
@@ -34,7 +36,7 @@
     "uuid": "^9.0.0"
   },
   "peerDependencies": {
-    "number-to-text": ">=0.3.9",
+    "axios": ">=0.27.2",
     "puppeteer": ">=19.4.0",
     "uuid": ">=8.0.0"
   },

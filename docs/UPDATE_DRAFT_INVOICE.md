@@ -8,8 +8,7 @@ import EInvoice, {
   BasicInvoice
 } from 'e-fatura'
 
-// EInvoice.getInvoice metodundan dönen fatura bilgileri
-// ile birleştirilir.
+// EInvoice.getInvoice metodundan dönen fatura bilgileri ile birleştirilir.
 const updatePayload: UpdateDraftInvoicePayload = {
   buyerFirstName: 'Alıcı adı',
   products: [
@@ -17,7 +16,7 @@ const updatePayload: UpdateDraftInvoicePayload = {
       name: 'Ürün ismi'
     }, // Mevcut ürünün adını değiştirir.
     {
-      nam: 'Ürün ismi 2'
+      name: 'Ürün ismi 2'
     } // products[1] yoksa yeni ürün eklenir.
   ]
 }
