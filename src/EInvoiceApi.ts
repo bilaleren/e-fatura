@@ -1,4 +1,6 @@
-import qs from 'node:querystring'
+import https from 'https'
+import crypto from 'crypto'
+import qs from 'querystring'
 import { v1 as uuidV1 } from 'uuid'
 import deepMerge from 'lodash.merge'
 import wrapArray from './utils/wrapArray'
@@ -27,6 +29,12 @@ import type {
   UpdateDraftInvoicePayload,
   UpdateUserInformationPayload
 } from './types'
+
+const isTestEnv = process.env.NODE_ENV === 'test'
+
+const allowLegacyRenegotiationForNodeJs = new https.Agent({
+  secureOptions: crypto.constants.SSL_OP_LEGACY_SERVER_CONNECT
+})
 
 class EInvoiceApi {
   private testMode = false
@@ -865,7 +873,8 @@ class EInvoiceApi {
         ...config?.headers,
         ...EInvoiceApi.DEFAULT_HEADERS,
         Referrer: `${baseURL}${EInvoiceApi.REFERRER_PATH}`
-      }
+      },
+      ...(!isTestEnv && { httpsAgent: allowLegacyRenegotiationForNodeJs })
     })
 
     if (!isPlainObject(data)) {
