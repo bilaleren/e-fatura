@@ -4,19 +4,15 @@ import numberToText from 'number-to-text'
 import getDateFormat from './getDateFormat'
 import InvoiceType from '../enums/InvoiceType'
 import EInvoiceTypeError from '../errors/EInvoiceTypeError'
-import { isRequired, isLessThan } from './validation'
 import EInvoiceCountry from '../enums/EInvoiceCountry'
 import EInvoiceUnitType from '../enums/EInvoiceUnitType'
 import EInvoiceCurrencyType from '../enums/EInvoiceCurrencyType'
+import { greaterThanValidator, notEmptyStringValidator } from './validators'
 import type { RefundInvoice, CreateDraftInvoicePayload } from '../types'
 
 import 'number-to-text/converters/tr'
 
-function convertPriceToText(value: unknown): string {
-  if (typeof value !== 'number') {
-    return ''
-  }
-
+function convertPriceToText(value: number): string {
   const [main, sub] = value.toFixed(2).split('.')
 
   const texts: string[] = [
@@ -107,10 +103,10 @@ function mappingDraftInvoiceKeys(
     throw new EInvoiceTypeError("Geçersiz fatura UUID'i.")
   }
 
-  isLessThan(base, 1, 'base')
-  isLessThan(paymentPrice, 1, 'paymentPrice')
-  isLessThan(productsTotalPrice, 1, 'productsTotalPrice')
-  isLessThan(includedTaxesTotalPrice, 1, 'includedTaxesTotalPrice')
+  greaterThanValidator(base, 0, 'base')
+  greaterThanValidator(paymentPrice, 0, 'paymentPrice')
+  greaterThanValidator(productsTotalPrice, 0, 'productsTotalPrice')
+  greaterThanValidator(includedTaxesTotalPrice, 0, 'includedTaxesTotalPrice')
 
   return {
     ...other,
@@ -143,7 +139,10 @@ function mappingDraftInvoiceKeys(
     iadeTable: refundTable.map((refund, index) => {
       const { invoiceNumber, date, ...other } = refund
 
-      isRequired(invoiceNumber, `refundTable[${index}].invoiceNumber`)
+      notEmptyStringValidator(
+        invoiceNumber,
+        `refundTable[${index}].invoiceNumber`
+      )
 
       return {
         ...other,
@@ -175,12 +174,12 @@ function mappingDraftInvoiceKeys(
         ...other
       } = product
 
-      isRequired(name, `products[${index}].name`)
+      notEmptyStringValidator(name, `products[${index}].name`)
 
-      isLessThan(price, 1, `products[${index}].price`)
-      isLessThan(quantity, 1, `products[${index}].quantity`)
-      isLessThan(unitPrice, 1, `products[${index}].unitPrice`)
-      isLessThan(totalAmount, 1, `products[${index}].totalAmount`)
+      greaterThanValidator(price, 0, `products[${index}].price`)
+      greaterThanValidator(quantity, 0, `products[${index}].quantity`)
+      greaterThanValidator(unitPrice, 0, `products[${index}].unitPrice`)
+      greaterThanValidator(totalAmount, 0, `products[${index}].totalAmount`)
 
       return {
         ...other,

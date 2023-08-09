@@ -75,13 +75,13 @@ describe('EInvoiceApi', () => {
     jest.resetAllMocks()
   })
 
-  describe('common', () => {
-    it('1. e-Arşiv API hataları yakalanmalı.', async () => {
+  describe('Hata ayıklama', () => {
+    it('Geçerli bir obje olmayan tepkiler hata oluşturmalı.', async () => {
       const accessToken = 'testToken'
 
       EInvoice.setToken(accessToken)
 
-      mockedAxios.post.mockRejectedValue({
+      mockedAxios.post.mockResolvedValue({
         data: null,
         status: 500
       })
@@ -91,13 +91,11 @@ describe('EInvoiceApi', () => {
       } catch (e) {
         const error = e as EInvoiceApiError
 
-        expect(error).toBeInstanceOf(EInvoiceApiError)
-
         expect(error.getResponse()).toEqual({
-          data: undefined,
+          data: null,
           errorCode: EInvoiceApiErrorCode.INVALID_RESPONSE,
           httpStatusCode: 500,
-          httpStatusText: 'Unknown'
+          httpStatusText: undefined
         })
 
         expect(mockedAxios.post).toHaveBeenCalledWith(
@@ -119,7 +117,7 @@ describe('EInvoiceApi', () => {
       }
     })
 
-    it('2. e-Arşiv API hataları yakalanmalı.', async () => {
+    it('Tepki içerisinde "error" anahtarı varsa hata oluşturmalı.', async () => {
       const accessToken = 'testToken'
 
       EInvoice.setToken(accessToken)
@@ -145,7 +143,7 @@ describe('EInvoiceApi', () => {
             error: '1',
             messages: []
           },
-          errorCode: EInvoiceApiErrorCode.SERVER_ERROR,
+          errorCode: EInvoiceApiErrorCode.UNKNOWN_ERROR,
           httpStatusCode: 200,
           httpStatusText: 'Success'
         })

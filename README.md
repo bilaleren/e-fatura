@@ -115,6 +115,7 @@ await EInvoice.logout()
 API ve tür hatalarının ayıklanması.
 
 ```typescript
+import axios from 'axios'
 import EInvoice, {
   EInvoiceApiError,
   EInvoiceTypeError,
@@ -131,8 +132,8 @@ try {
     const response = e.getResponse()
 
     switch (e.errorCode) {
-      case EInvoiceApiErrorCode.SERVER_ERROR:
-        console.error('Sunucu taraflı bir hata oluştu:', response)
+      case EInvoiceApiErrorCode.UNKNOWN_ERROR:
+        console.error('Bilinmeyen bir hata oluştu:', response)
         break
       case EInvoiceApiErrorCode.INVALID_RESPONSE:
         console.error('Geçersiz API cevabı:', response)
@@ -144,6 +145,8 @@ try {
         console.error('Basit fatura oluşturulamadı:', response)
       // ...
     }
+  } else if (axios.isAxiosError(e)) {
+    console.error('Axios hatası meydana geldi:', e)
   } else {
     console.error('Bilinmeyen bir hata meydana geldi:', e)
   }

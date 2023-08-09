@@ -2,10 +2,10 @@ import qs from 'node:querystring'
 import { v1 as uuidV1 } from 'uuid'
 import deepMerge from 'lodash.merge'
 import wrapArray from './utils/wrapArray'
+import axios, { AxiosRequestConfig } from 'axios'
 import isPlainObject from './utils/isPlainObject'
 import getDateFormat from './utils/getDateFormat'
 import htmlToPdf, { PDFOptions } from './utils/htmlToPdf'
-import axios, { AxiosResponse, AxiosRequestConfig } from 'axios'
 import EInvoiceTypeError from './errors/EInvoiceTypeError'
 import EInvoiceApiError from './errors/EInvoiceApiError'
 import mappingInvoiceKeys from './utils/mappingInvoiceKeys'
@@ -206,11 +206,7 @@ class EInvoiceApi {
       params
     )
 
-    if (
-      isPlainObject(data.data) &&
-      'hata' in data.data &&
-      data.data.hata !== ''
-    ) {
+    if (!isPlainObject(data.data) || 'hata' in data.data) {
       throw new EInvoiceApiError('Fatura bulunamadı.', {
         data,
         errorCode: EInvoiceApiErrorCode.INVOICE_NOT_FOUND
@@ -856,51 +852,41 @@ class EInvoiceApi {
     config?: AxiosRequestConfig
   ): Promise<T> {
     const baseURL = this.getBaseURL()
-    let response: AxiosResponse<T> | undefined
 
-    try {
-      response = await axios.post<T>(url, qs.stringify(params), {
-        timeout: 10 * 1000,
-        ...config,
-        baseURL,
-        headers: {
-          ...config?.headers,
-          ...EInvoiceApi.DEFAULT_HEADERS,
-          Referrer: `${baseURL}${EInvoiceApi.REFERRER_PATH}`
-        }
-      })
-    } catch (e) {
-      if (axios.isAxiosError(e) && isPlainObject(e.response)) {
-        const { data, status, statusText } = e.response
-
-        throw new EInvoiceApiError('Sunucu taraflı bir hata oluştu.', {
-          data,
-          errorCode: EInvoiceApiErrorCode.SERVER_ERROR,
-          httpStatusText: statusText,
-          httpStatusCode: status
-        })
+    const {
+      data,
+      status: httpStatusCode,
+      statusText: httpStatusText
+    } = await axios.post<T>(url, qs.stringify(params), {
+      timeout: 10 * 1000,
+      ...config,
+      baseURL,
+      headers: {
+        ...config?.headers,
+        ...EInvoiceApi.DEFAULT_HEADERS,
+        Referrer: `${baseURL}${EInvoiceApi.REFERRER_PATH}`
       }
-    }
+    })
 
-    if (!response || !isPlainObject(response.data)) {
+    if (!isPlainObject(data)) {
       throw new EInvoiceApiError('Geçersiz API cevabı.', {
-        data: response?.data,
+        data,
         errorCode: EInvoiceApiErrorCode.INVALID_RESPONSE,
-        httpStatusCode: 500,
-        httpStatusText: 'Unknown'
+        httpStatusCode,
+        httpStatusText
       })
     }
 
-    if ('error' in response.data) {
-      throw new EInvoiceApiError('Sunucu taraflı bir hata oluştu.', {
-        data: response.data,
-        errorCode: EInvoiceApiErrorCode.SERVER_ERROR,
-        httpStatusCode: response.status,
-        httpStatusText: response.statusText
+    if ('error' in data) {
+      throw new EInvoiceApiError('Bilinmeyen bir hata oluştu.', {
+        data,
+        errorCode: EInvoiceApiErrorCode.UNKNOWN_ERROR,
+        httpStatusCode,
+        httpStatusText
       })
     }
 
-    return response.data
+    return data
   }
 
   private getBaseURL(): string {

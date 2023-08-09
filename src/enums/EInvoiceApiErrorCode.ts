@@ -1,8 +1,8 @@
 enum EInvoiceApiErrorCode {
   /**
-   * Sunucu taraflı bir hata oluştu.
+   * Bilinmeyen bir hata oluştu.
    */
-  SERVER_ERROR = 1,
+  UNKNOWN_ERROR = 1,
 
   /**
    * Geçersiz API cevabı.
