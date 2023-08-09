@@ -1,4 +1,4 @@
-import qs from 'node:querystring'
+import * as qs from 'node:querystring'
 import { v1 as uuidV1 } from 'uuid'
 import deepMerge from 'lodash.merge'
 import wrapArray from './utils/wrapArray'
@@ -27,6 +27,9 @@ import type {
   UpdateDraftInvoicePayload,
   UpdateUserInformationPayload
 } from './types'
+// For Node.js 18+ SLL
+import crypto from 'crypto'
+import https, { Agent } from 'https'
 
 class EInvoiceApi {
   private testMode = false
@@ -867,7 +870,10 @@ class EInvoiceApi {
           ...config?.headers,
           ...EInvoiceApi.DEFAULT_HEADERS,
           Referrer: `${baseURL}${EInvoiceApi.REFERRER_PATH}`
-        }
+        },
+        httpAgent: new Agent({
+          secureOptions: crypto.constants.SSL_OP_LEGACY_SERVER_CONNECT
+        })
       })
     } catch (e) {
       if (axios.isAxiosError(e) && isPlainObject(e.response)) {
