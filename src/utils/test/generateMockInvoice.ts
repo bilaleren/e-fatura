@@ -13,12 +13,8 @@ interface GenerateMockInvoiceOptions {
   mappingWithTurkishKeys?: boolean
 }
 
-function stringOrNumber(
-  cond: boolean,
-  value: number,
-  fractionDigits = 2
-): string | number {
-  return cond ? value.toFixed(fractionDigits) : value
+function stringOrNumber(cond: boolean, value: number): string | number {
+  return cond ? value.toString() : value
 }
 
 function generateMockInvoice(
@@ -51,7 +47,7 @@ function generateMockInvoice(
             miktar: 3,
             birimFiyat: stringOrNumber(numberToString, 4),
             malHizmetTutari: stringOrNumber(numberToString, 5),
-            kdvOrani: stringOrNumber(numberToString, 6, 0),
+            kdvOrani: stringOrNumber(numberToString, 6),
             kdvTutari: stringOrNumber(numberToString, 7),
             vergininKdvTutari: stringOrNumber(numberToString, 8),
             birim: EInvoiceUnitType.ADET,
@@ -133,7 +129,7 @@ function generateMockInvoice(
           quantity: 3,
           unitPrice: stringOrNumber(numberToString, 4),
           totalAmount: stringOrNumber(numberToString, 5),
-          vatRate: stringOrNumber(numberToString, 6, 0),
+          vatRate: stringOrNumber(numberToString, 6),
           vatAmount: stringOrNumber(numberToString, 7),
           vatAmountOfTax: stringOrNumber(numberToString, 8),
           unitType: EInvoiceUnitType.ADET,
