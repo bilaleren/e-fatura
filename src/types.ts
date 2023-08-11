@@ -641,7 +641,7 @@ export interface InvoiceProduct {
   discountOrIncrementReason?: string
 
   /**
-   * Toplam tutar. KDV ve diğer ücretlerin toplamı.
+   * Toplam tutar. Ürün fiyatı (`InvoiceProduct.price`) ve vergilerin toplamı.
    * @alias 'malHizmetTutari'
    */
   totalAmount: number
@@ -661,7 +661,7 @@ export interface InvoiceProduct {
   taxRate?: number
 
   /**
-   * KDV tutarı. (price / 100) * taxRate
+   * KDV tutarı. (Örn. price * (1 + vatRate / 100))
    * @alias 'kdvTutari'
    * @default 0
    */
@@ -915,7 +915,7 @@ export interface CreateDraftInvoicePayload {
   type?: string
 
   /**
-   * Vergiye tabi tutar/değer. Örn. ((calculatedVAT / (KDV oranı / 100))
+   * Vergiye tabi tutar/değer. (Örn. Hesaplanan KDV / (KDV oranı / 100))
    * @alias 'matrah'
    */
   base: number
