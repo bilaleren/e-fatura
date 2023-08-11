@@ -214,7 +214,7 @@ class EInvoiceApi {
       params
     )
 
-    if (!isPlainObject(data.data) || 'hata' in data.data) {
+    if (!isPlainObject(data.data)) {
       throw new EInvoiceApiError('Fatura bulunamadı.', {
         data,
         errorCode: EInvoiceApiErrorCode.INVOICE_NOT_FOUND
@@ -886,7 +886,7 @@ class EInvoiceApi {
       })
     }
 
-    if ('error' in data) {
+    if ('error' in data || (isPlainObject(data.data) && data.data.hata)) {
       throw new EInvoiceApiError('Bilinmeyen bir hata oluştu.', {
         data,
         errorCode: EInvoiceApiErrorCode.UNKNOWN_ERROR,
