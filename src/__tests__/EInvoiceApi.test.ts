@@ -1,6 +1,7 @@
 import axios, { AxiosRequestConfig } from 'axios'
 import { v1 as uuidV1 } from 'uuid'
-import qs from 'node:querystring'
+import qs from 'querystring'
+import { zipSync, unzipSync } from 'fflate'
 import EInvoiceApi from '../EInvoiceApi'
 import getDateFormat from '../utils/getDateFormat'
 import EInvoiceTypeError from '../errors/EInvoiceTypeError'
@@ -175,7 +176,7 @@ describe('EInvoiceApi', () => {
     })
   })
 
-  describe('setTestMode & getTestMode()', () => {
+  describe('setTestMode() & getTestMode()', () => {
     it('Test modu aktif/deaktif edilmeli.', () => {
       expect(EInvoice.getTestMode()).toBe(false)
       expect(EInvoice.setTestMode(true)).toBeInstanceOf(EInvoiceApi)
@@ -1079,9 +1080,9 @@ describe('EInvoiceApi', () => {
     })
   })
 
-  describe('getInvoiceHTML()', () => {
+  describe('getInvoiceHtml()', () => {
     it('Erişim jetonu belirtilmediğinde hata fırlatmalı.', () => {
-      expect(() => EInvoice.getInvoiceHTML('')).rejects.toThrow(
+      expect(() => EInvoice.getInvoiceHtml('')).rejects.toThrow(
         EInvoiceTypeError
       )
     })
@@ -1103,7 +1104,7 @@ describe('EInvoiceApi', () => {
       const mockInvoice = generateMockBasicInvoice({
         uuid
       })
-      const invoiceHTML = await EInvoice.getInvoiceHTML(
+      const invoiceHTML = await EInvoice.getInvoiceHtml(
         mockInvoice as BasicInvoice
       )
 
@@ -1139,7 +1140,7 @@ describe('EInvoiceApi', () => {
       })
 
       const uuid = uuidV1()
-      const invoiceHTML = await EInvoice.getInvoiceHTML(uuid, false)
+      const invoiceHTML = await EInvoice.getInvoiceHtml(uuid, false)
 
       expect(invoiceHTML).toBe(expectedHTML)
 
@@ -1182,7 +1183,7 @@ describe('EInvoiceApi', () => {
       const mockInvoice = generateMockBasicInvoice({
         uuid
       })
-      const invoiceHTML = await EInvoice.getInvoiceHTML(
+      const invoiceHTML = await EInvoice.getInvoiceHtml(
         mockInvoice as BasicInvoice,
         false,
         true
@@ -1212,9 +1213,9 @@ describe('EInvoiceApi', () => {
     })
   })
 
-  describe('getInvoicePDF()', () => {
+  describe('getInvoicePdf()', () => {
     it('Erişim jetonu belirtilmediğinde hata fırlatmalı.', () => {
-      expect(() => EInvoice.getInvoicePDF('')).rejects.toThrow(
+      expect(() => EInvoice.getInvoicePdf('')).rejects.toThrow(
         EInvoiceTypeError
       )
     })
@@ -1241,7 +1242,7 @@ describe('EInvoiceApi', () => {
         } as unknown as Page)
       } as unknown as Browser)
 
-      const pdfBuffer = await EInvoice.getInvoicePDF(
+      const pdfBuffer = await EInvoice.getInvoicePdf(
         generateMockBasicInvoice({
           uuid: uuidV1()
         }) as BasicInvoice
@@ -1261,7 +1262,7 @@ describe('EInvoiceApi', () => {
       expect(pdfBuffer.toString()).toBe(expectedHTML)
 
       expect(page.pdf).toHaveBeenCalledWith({
-        format: 'a4',
+        format: 'A4',
         path: undefined
       })
 
@@ -1294,7 +1295,7 @@ describe('EInvoiceApi', () => {
         } as unknown as Page)
       } as unknown as Browser)
 
-      const pdfBuffer = await EInvoice.getInvoicePDF(uuidV1())
+      const pdfBuffer = await EInvoice.getInvoicePdf(uuidV1())
 
       expect(mockedPuppeteer.launch).toBeCalledTimes(1)
 
@@ -1310,7 +1311,7 @@ describe('EInvoiceApi', () => {
       expect(pdfBuffer.toString()).toBe(expectedHTML)
 
       expect(page.pdf).toHaveBeenCalledWith({
-        format: 'a4',
+        format: 'A4',
         path: undefined
       })
 
@@ -1319,6 +1320,114 @@ describe('EInvoiceApi', () => {
       })
 
       expect(browser.close).toBeCalledTimes(1)
+    })
+  })
+
+  describe('getInvoiceZip()', () => {
+    it('Erişim jetonu belirtilmediğinde hata fırlatmalı.', () => {
+      expect(() => EInvoice.getInvoiceZip('')).rejects.toThrow(
+        EInvoiceTypeError
+      )
+    })
+
+    it('"content-disposition" başlığı beklenen değere eşit değilse hata fırlatmalı.', () => {
+      const invoiceUUID = uuidV1()
+      const accessToken = 'testToken'
+
+      EInvoice.setToken(accessToken)
+
+      mockedAxios.get.mockResolvedValue({
+        data: zipSync({
+          [`${invoiceUUID}_f.html`]: Buffer.from('invoice html'),
+          [`${invoiceUUID}_f.xml`]: Buffer.from('invoice xml')
+        })
+      })
+
+      expect(() => EInvoice.getInvoiceZip(invoiceUUID)).rejects.toThrow(
+        EInvoiceApiError
+      )
+    })
+
+    it('Faturaya ait zip dosyası içeriğini getirmeli.', async () => {
+      const invoiceUUID = uuidV1()
+      const accessToken = 'testToken'
+
+      EInvoice.setToken(accessToken)
+
+      const invoiceXmlBytes = new Uint8Array(Buffer.from('invoice xml'))
+      const invoiceHtmlBytes = new Uint8Array(Buffer.from('invoice html'))
+
+      mockedAxios.get.mockResolvedValue({
+        data: zipSync({
+          [`${invoiceUUID}_f.xml`]: invoiceXmlBytes,
+          [`${invoiceUUID}_f.html`]: invoiceHtmlBytes
+        }),
+        headers: {
+          'content-disposition': `attachment; filename="${invoiceUUID}_f.zip"`
+        }
+      })
+
+      const zipBuffer = await EInvoice.getInvoiceZip(invoiceUUID)
+      const zipEntries = unzipSync(zipBuffer)
+
+      expect(zipEntries[`${invoiceUUID}_f.xml`]).toStrictEqual(invoiceXmlBytes)
+      expect(zipEntries[`${invoiceUUID}_f.html`]).toStrictEqual(
+        invoiceHtmlBytes
+      )
+    })
+  })
+
+  describe('getInvoiceXml()', () => {
+    it('Erişim jetonu belirtilmediğinde hata fırlatmalı.', () => {
+      expect(() => EInvoice.getInvoiceXml('')).rejects.toThrow(
+        EInvoiceTypeError
+      )
+    })
+
+    it('Faturanın xml dosyası zip içerisinde yoksa hata fırlatmalı.', () => {
+      const invoiceUUID = uuidV1()
+      const accessToken = 'testToken'
+
+      EInvoice.setToken(accessToken)
+
+      const invoiceHtmlBytes = new Uint8Array(Buffer.from('invoice html'))
+
+      mockedAxios.get.mockResolvedValue({
+        data: zipSync({
+          [`${invoiceUUID}_f.html`]: invoiceHtmlBytes
+        }),
+        headers: {
+          'content-disposition': `attachment; filename="${invoiceUUID}_f.zip"`
+        }
+      })
+
+      expect(() => EInvoice.getInvoiceXml(invoiceUUID)).rejects.toThrow(
+        EInvoiceApiError
+      )
+    })
+
+    it('Faturanın xml içeriğini zip içersinden çıkarmalı.', async () => {
+      const invoiceUUID = uuidV1()
+      const accessToken = 'testToken'
+
+      EInvoice.setToken(accessToken)
+
+      const invoiceXmlBytes = new Uint8Array(Buffer.from('invoice xml'))
+      const invoiceHtmlBytes = new Uint8Array(Buffer.from('invoice html'))
+
+      mockedAxios.get.mockResolvedValue({
+        data: zipSync({
+          [`${invoiceUUID}_f.xml`]: invoiceXmlBytes,
+          [`${invoiceUUID}_f.html`]: invoiceHtmlBytes
+        }),
+        headers: {
+          'content-disposition': `attachment; filename="${invoiceUUID}_f.zip"`
+        }
+      })
+
+      const xmlBuffer = await EInvoice.getInvoiceXml(invoiceUUID)
+
+      expect(xmlBuffer).toStrictEqual(Buffer.from(invoiceXmlBytes))
     })
   })
 

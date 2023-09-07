@@ -3,7 +3,7 @@ import crypto from 'crypto'
 import qs from 'querystring'
 import { v1 as uuidV1 } from 'uuid'
 import deepMerge from 'lodash.merge'
-import wrapArray from './utils/wrapArray'
+import toArray from './utils/toArray'
 import axios, { AxiosRequestConfig } from 'axios'
 import isPlainObject from './utils/isPlainObject'
 import getDateFormat from './utils/getDateFormat'
@@ -330,28 +330,12 @@ class EInvoiceApi {
   }
 
   /**
-   * Faturaları onay durumuna göre filtreler.
-   * @param invoices Filtrelenecek faturalar.
-   * @param status Onay durumu.
-   */
-  filterBasicInvoicesByApprovalStatus(
-    invoices: BasicInvoice[],
-    status?: InvoiceApprovalStatus | string
-  ): BasicInvoice[] {
-    if (typeof status !== 'string') {
-      return invoices
-    }
-
-    return invoices.filter((value) => status === value.approvalStatus)
-  }
-
-  /**
-   * Faturanın HTML çıktısını getirir.
+   * Faturanın html çıktısını getirir.
    * @param invoiceOrUuid Fatura veya faturanın UUID'i.
    * @param signed Faturanın onay durumunu belirler. `true` Onaylandı `false` Onaylanmadı.
    * @param injectPrintScript HTML çıktısına `window.print()` komutunu ekler.
    */
-  async getInvoiceHTML(
+  async getInvoiceHtml(
     invoiceOrUuid: InvoiceOrUuid,
     signed = true,
     injectPrintScript = false
@@ -397,17 +381,77 @@ class EInvoiceApi {
    * @param signed Faturanın onay durumunu belirler. `true` Onaylandı `false` Onaylanmadı.
    * @param options PDF ayarları.
    */
-  async getInvoicePDF(
+  async getInvoicePdf(
     invoiceOrUuid: InvoiceOrUuid,
     signed = true,
     options?: PDFOptions
   ): Promise<Buffer> {
-    const html = await this.getInvoiceHTML(invoiceOrUuid, signed)
+    const html = await this.getInvoiceHtml(invoiceOrUuid, signed)
 
     return htmlToPdf(html, {
-      format: 'a4',
+      format: 'A4',
       ...options
     })
+  }
+
+  /**
+   * Faturayı zip formatına dönüştürür.
+   * @param invoiceOrUuid Fatura veya faturanın UUID'i.
+   * @param signed Faturanın onay durumunu belirler. `true` Onaylandı `false` Onaylanmadı.
+   */
+  async getInvoiceZip(
+    invoiceOrUuid: InvoiceOrUuid,
+    signed?: boolean
+  ): Promise<Buffer> {
+    const invoiceUuid = this.getInvoiceUuid(invoiceOrUuid)
+    const downloadUrl = this.getInvoiceDownloadUrl(invoiceUuid, signed)
+    const { headers = {}, data: zipBuffer } = await axios.get<ArrayBuffer>(
+      downloadUrl,
+      {
+        responseType: 'arraybuffer'
+      }
+    )
+
+    const contentDisposition = headers['content-disposition']
+    const expectedContentDisposition = `attachment; filename="${invoiceUuid}_f.zip"`
+
+    if (contentDisposition !== expectedContentDisposition) {
+      throw new EInvoiceApiError('Geçersiz fatura zip dosyası yanıtı.', {
+        data: undefined,
+        errorCode: EInvoiceApiErrorCode.INVALID_INVOICE_ZIP_FILE_RESPONSE
+      })
+    }
+
+    return Buffer.from(zipBuffer)
+  }
+
+  /**
+   * Faturayı xml formatına dönüştürür.
+   * @param invoiceOrUuid Fatura veya faturanın UUID'i.
+   * @param signed Faturanın onay durumunu belirler. `true` Onaylandı `false` Onaylanmadı.
+   */
+  async getInvoiceXml(
+    invoiceOrUuid: InvoiceOrUuid,
+    signed?: boolean
+  ): Promise<Buffer> {
+    const { unzipSync } = await import('fflate')
+    const invoiceUuid = this.getInvoiceUuid(invoiceOrUuid)
+    const xmlFilename = `${invoiceUuid}_f.xml`
+    const zipBuffer = await this.getInvoiceZip(invoiceUuid, signed)
+
+    const zipEntries = unzipSync(zipBuffer, {
+      filter: (file) => file.name === xmlFilename
+    })
+    const xmlFileBytes = zipEntries[xmlFilename]
+
+    if (!xmlFileBytes) {
+      throw new EInvoiceApiError('Faturaya ait xml dosyası bulunamadı.', {
+        data: undefined,
+        errorCode: EInvoiceApiErrorCode.INVOICE_XML_FILE_NOT_FOUND
+      })
+    }
+
+    return Buffer.from(xmlFileBytes)
   }
 
   /**
@@ -566,18 +610,6 @@ class EInvoiceApi {
     }
 
     return `${data.data.telefon}`
-  }
-
-  /**
-   * Faturanın UUID'ini alır.
-   * @param invoiceOrUuid Fatura veya faturanın UUID'i.
-   */
-  getInvoiceUuid(invoiceOrUuid: InvoiceOrUuid): string {
-    if (typeof invoiceOrUuid === 'string') {
-      return invoiceOrUuid
-    }
-
-    return invoiceOrUuid.uuid
   }
 
   /**
@@ -802,7 +834,7 @@ class EInvoiceApi {
         SIFRE: code,
         OID: oid,
         OPR: 1,
-        DATA: wrapArray(invoice).map((value) => {
+        DATA: toArray(invoice).map((value) => {
           return mappingBasicInvoiceKeys(value, true)
         })
       })
@@ -852,6 +884,34 @@ class EInvoiceApi {
       username: data.userid,
       password: '1'
     })
+  }
+
+  /**
+   * Faturanın UUID'ini alır.
+   * @param invoiceOrUuid Fatura veya faturanın UUID'i.
+   */
+  getInvoiceUuid(invoiceOrUuid: InvoiceOrUuid): string {
+    if (typeof invoiceOrUuid === 'string') {
+      return invoiceOrUuid
+    }
+
+    return invoiceOrUuid.uuid
+  }
+
+  /**
+   * Faturaları onay durumuna göre filtreler.
+   * @param invoices Filtrelenecek faturalar.
+   * @param status Onay durumu.
+   */
+  filterBasicInvoicesByApprovalStatus(
+    invoices: BasicInvoice[],
+    status?: InvoiceApprovalStatus | string
+  ): BasicInvoice[] {
+    if (typeof status !== 'string') {
+      return invoices
+    }
+
+    return invoices.filter((value) => status === value.approvalStatus)
   }
 
   private async sendRequest<T extends Record<string, unknown>>(

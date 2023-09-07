@@ -43,4 +43,4 @@ console.log(
 )
 ```
 
-Not: Fatura oluşturmak için kullanabileceğiniz diğer alanlar için [types > CreateDraftInvoicePayload](../src/types.ts) türüne bakabilirsiniz.
+Not: Fatura oluşturmak için kullanabileceğiniz diğer alanlar için [CreateDraftInvoicePayload](../src/types.ts#L689) türüne bakabilirsiniz.

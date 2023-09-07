@@ -77,7 +77,17 @@ enum EInvoiceApiErrorCode {
   /**
    * Şirket bilgileri bulunamadı.
    */
-  COMPANY_INFORMATION_NOT_FOUND = 16
+  COMPANY_INFORMATION_NOT_FOUND = 16,
+
+  /**
+   * Faturaya ait xml dosyası bulunamadı.
+   */
+  INVOICE_XML_FILE_NOT_FOUND = 17,
+
+  /**
+   * Geçersiz fatura zip dosyası yanıtı.
+   */
+  INVALID_INVOICE_ZIP_FILE_RESPONSE = 18
 }
 
 export default EInvoiceApiErrorCode

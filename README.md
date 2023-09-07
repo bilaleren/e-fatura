@@ -25,7 +25,8 @@ npm i e-fatura
 
 ```typescript
 import EInvoice, {
-  getDateFormat, // Tarih formatını alma
+  getDateFormat, // Tarih formatını alır (Gün/Ay/Yıl veya Saat:Dakika:Saniye)
+  paymentPriceToText, // Ödenecek tutarı metine dönüştürür
   EInvoiceCountry, // Ülkeler
   EInvoiceApi, // e-Arşiv API servisi
   EInvoiceTypeError, // Tür hata sınıfı
@@ -49,6 +50,8 @@ import EInvoice, {
 - [Fatura güncelleme.](docs/UPDATE_DRAFT_INVOICE.md)
 - [Faturanın HTML çıktısını alma.](docs/GET_INVOICE_HTML.md)
 - [Faturanın PDF çıktısını alma.](docs/GET_INVOICE_PDF.md)
+- [Faturanın ZIP çıktısını alma.](docs/GET_INVOICE_ZIP.md)
+- [Faturanın XML çıktısını alma.](docs/GET_INVOICE_XML.md)
 - [Faturanın indirme bağlantısını alma.](docs/GET_INVOICE_DOWNLOAD_URL.md)
 - [Fatura silme.](docs/DELETE_DRAFT_INVOICE.md)
 - [Fatura iptal etme.](docs/CREATE_CANCEL_REQUEST_FOR_INVOICE.md)

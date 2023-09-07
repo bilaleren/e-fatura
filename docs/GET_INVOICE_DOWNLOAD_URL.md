@@ -8,7 +8,7 @@ import EInvoice, { BasicInvoice, InvoiceOrUuid } from 'e-fatura'
 // Fatura veya faturaya ait UUID
 const invoiceOrUuid: InvoiceOrUuid = ''
 
-const downloadUrl: string = await EInvoice.getInvoiceDownloadUrl(
+const downloadUrl = await EInvoice.getInvoiceDownloadUrl(
   invoiceOrUuid,
   false, // Faturanın onay durumu: varsayılan true
 )
@@ -16,5 +16,5 @@ const downloadUrl: string = await EInvoice.getInvoiceDownloadUrl(
 console.log('Fatura indirme bağlantısı:', downloadUrl)
 ```
 
-Not: İndirme bağlantısı oluşturulduktan sonra **EInvoice.logout()** metodunun kullanılmaması gerekmektedir. İndirme bağlantısına gittiğinizde **Oturum zamanaşımına uğradı, yeni oturum açınız** içerikli bir hata verecektir. Fatura indirme ile ilgili daha fazla bilgi için [download-zip-example.js](../examples/download-zip-example.js) dosyasına bakabilirsiniz.
+**Uyarı!** İndirme bağlantısı oluşturulduktan sonra **EInvoice.logout()** metodunun kullanılmaması gerekmektedir. İndirme bağlantısına gittiğinizde **Oturum zaman aşımına uğradı, yeni oturum açınız** içerikli bir hata verecektir.
 

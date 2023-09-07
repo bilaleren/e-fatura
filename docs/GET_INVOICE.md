@@ -1,6 +1,6 @@
 ### Detaylı Fatura Bilgilerini Alma
 
-e-Arşiv üzerinde bulunan bir faturanın tüm bilgilerini (ürünler, fiyatlar, kdv vb.) alma.
+e-Arşiv üzerinde bulunan bir faturanın tüm bilgilerini (ürünler, fiyatlar, kdv vb.) getirir.
 
 ```typescript
 import EInvoice, {

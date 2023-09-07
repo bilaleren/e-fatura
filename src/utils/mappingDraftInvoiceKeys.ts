@@ -1,41 +1,14 @@
 import { v1 as uuidV1, validate as validateUuid } from 'uuid'
 import isPlainObject from './isPlainObject'
-import numberToText from 'number-to-text'
 import getDateFormat from './getDateFormat'
 import InvoiceType from '../enums/InvoiceType'
+import paymentPriceToText from './paymentPriceToText'
 import EInvoiceTypeError from '../errors/EInvoiceTypeError'
 import EInvoiceCountry from '../enums/EInvoiceCountry'
 import EInvoiceUnitType from '../enums/EInvoiceUnitType'
 import EInvoiceCurrencyType from '../enums/EInvoiceCurrencyType'
 import { greaterThanValidator, notEmptyStringValidator } from './validators'
 import type { RefundInvoice, CreateDraftInvoicePayload } from '../types'
-
-import 'number-to-text/converters/tr'
-
-function convertPriceToText(value: number): string {
-  const [main, sub] = value.toFixed(2).split('.')
-
-  const texts: string[] = [
-    'Yalnız',
-    numberToText.convertToText(+main, {
-      case: 'titleCase',
-      language: 'tr'
-    }),
-    'TL'
-  ]
-
-  if (sub !== '00') {
-    texts.push(
-      numberToText.convertToText(+sub, {
-        case: 'titleCase',
-        language: 'tr'
-      }),
-      'Kuruş'
-    )
-  }
-
-  return texts.join(' ')
-}
 
 function mappingDraftInvoiceKeys(
   payload: CreateDraftInvoicePayload
@@ -208,7 +181,7 @@ function mappingDraftInvoiceKeys(
     vergilerToplami: totalTaxes.toString(),
     vergilerDahilToplamTutar: includedTaxesTotalPrice.toString(),
     odenecekTutar: paymentPrice.toString(),
-    not: note || convertPriceToText(paymentPrice),
+    not: note || `Yalnız ${paymentPriceToText(paymentPrice)}`,
     siparisNumarasi: orderNumber,
     siparisTarihi: orderDate ? getDateFormat(orderDate) : '',
     irsaliyeNumarasi: waybillNumber,

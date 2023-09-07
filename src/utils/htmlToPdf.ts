@@ -10,7 +10,8 @@ async function htmlToPdf(html: string, options?: PDFOptions): Promise<Buffer> {
   const { args = defaultArgs, ...pdfOptions } = options || {}
   const puppeteer = await import('puppeteer')
   const browser = await puppeteer.launch({
-    args
+    args,
+    headless: 'new'
   })
   const page = await browser.newPage()
 

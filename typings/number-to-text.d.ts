@@ -1,5 +1,5 @@
 declare module 'number-to-text' {
-  interface ConvertToNumberOptions {
+  export interface ConvertToNumberOptions {
     case?: 'titleCase' | 'lowerCase' | 'upperCase'
     language?: string
     separator?: string
