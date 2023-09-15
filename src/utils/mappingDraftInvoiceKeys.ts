@@ -181,7 +181,7 @@ function mappingDraftInvoiceKeys(
     vergilerToplami: totalTaxes.toString(),
     vergilerDahilToplamTutar: includedTaxesTotalPrice.toString(),
     odenecekTutar: paymentPrice.toString(),
-    not: note || `Yalnız ${paymentPriceToText(paymentPrice)}`,
+    not: note || `YALNIZ ${paymentPriceToText(paymentPrice)}`,
     siparisNumarasi: orderNumber,
     siparisTarihi: orderDate ? getDateFormat(orderDate) : '',
     irsaliyeNumarasi: waybillNumber,

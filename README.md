@@ -7,7 +7,7 @@
 
 Bu paket, Node.js aracılığıyla e-Arşiv üzerinden fatura oluşturma, düzenleme, imzalama gibi işlemleri yapabilmenize olanak sağlar.
 
-🚨 Bu paket **vergiye tabi olan belge** oluşturur, hiç bir sorumluluk kabul edilmez ve ne yaptığınızdan emin olana kadar **EInvoice.setTestMode(true)** kullanarak test modu açık şekilde test verileriyle işlem yapmanız önerilir.
+🚨 Bu paket **vergiye tabî olan belge** oluşturur. Hiç bir sorumluluk kabul edilmez ve ne yaptığınızdan emin olana kadar **EInvoice.setTestMode(true)** kullanarak test modu açık şekilde test verileriyle işlem yapmanız önerilir.
 
 ## Kurulum
 
@@ -27,6 +27,8 @@ npm i e-fatura
 import EInvoice, {
   getDateFormat, // Tarih formatını alır (Gün/Ay/Yıl veya Saat:Dakika:Saniye)
   paymentPriceToText, // Ödenecek tutarı metine dönüştürür
+  htmlToPdf, // Html metnini pdf'e dönüştürür
+  XsltRenderer, // Faturayı XSLT şablonu ile işler
   EInvoiceCountry, // Ülkeler
   EInvoiceApi, // e-Arşiv API servisi
   EInvoiceTypeError, // Tür hata sınıfı
@@ -53,6 +55,7 @@ import EInvoice, {
 - [Faturanın ZIP çıktısını alma.](docs/GET_INVOICE_ZIP.md)
 - [Faturanın XML çıktısını alma.](docs/GET_INVOICE_XML.md)
 - [Faturanın indirme bağlantısını alma.](docs/GET_INVOICE_DOWNLOAD_URL.md)
+- [XSLT şablonu ile fatura işleme. (Deneysel)](docs/INVOICE_XSLT_RENDERER.md)
 - [Fatura silme.](docs/DELETE_DRAFT_INVOICE.md)
 - [Fatura iptal etme.](docs/CREATE_CANCEL_REQUEST_FOR_INVOICE.md)
 - [Kullanıcı (şirket) bilgilerini çekme.](docs/GET_USER_INFORMATION.md)

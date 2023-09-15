@@ -16,6 +16,7 @@ module.exports = {
     'no-undef': 'off',
     'no-unused-vars': 'off',
     'no-unused-expressions': 'off',
+    'no-useless-constructor': 'off',
     'space-before-function-paren': 'off',
     '@typescript-eslint/ban-ts-ignore': 'off',
     '@typescript-eslint/no-var-requires': 'off',

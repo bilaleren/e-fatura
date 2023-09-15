@@ -4,10 +4,11 @@ import qs from 'querystring'
 import { v1 as uuidV1 } from 'uuid'
 import deepMerge from 'lodash.merge'
 import toArray from './utils/toArray'
+import XsltRenderer from './XsltRenderer'
 import axios, { AxiosRequestConfig } from 'axios'
 import isPlainObject from './utils/isPlainObject'
 import getDateFormat from './utils/getDateFormat'
-import htmlToPdf, { PDFOptions } from './utils/htmlToPdf'
+import htmlToPdf, { PdfOptions } from './utils/htmlToPdf'
 import EInvoiceTypeError from './errors/EInvoiceTypeError'
 import EInvoiceApiError from './errors/EInvoiceApiError'
 import mappingInvoiceKeys from './utils/mappingInvoiceKeys'
@@ -27,6 +28,7 @@ import type {
   FilterBasicInvoices,
   CreateDraftInvoicePayload,
   UpdateDraftInvoicePayload,
+  InvoiceXsltRendererOptions,
   UpdateUserInformationPayload
 } from './types'
 
@@ -34,6 +36,14 @@ const isTestEnv = process.env.NODE_ENV === 'test'
 
 const allowLegacyRenegotiationForNodeJs = new https.Agent({
   secureOptions: crypto.constants.SSL_OP_LEGACY_SERVER_CONNECT
+})
+
+const getAxiosRequestConfig = (
+  config?: AxiosRequestConfig
+): AxiosRequestConfig => ({
+  timeout: 10 * 1000,
+  ...(!isTestEnv ? { httpsAgent: allowLegacyRenegotiationForNodeJs } : {}),
+  ...config
 })
 
 class EInvoiceApi {
@@ -321,7 +331,7 @@ class EInvoiceApi {
 
     if (!invoice) {
       throw new EInvoiceApiError('Fatura bulunamadı.', {
-        data: {},
+        data: undefined,
         errorCode: EInvoiceApiErrorCode.BASIC_INVOICE_NOT_FOUND
       })
     }
@@ -379,19 +389,16 @@ class EInvoiceApi {
    * Faturayı PDF'e dönüştürür.
    * @param invoiceOrUuid Fatura veya faturanın UUID'i.
    * @param signed Faturanın onay durumunu belirler. `true` Onaylandı `false` Onaylanmadı.
-   * @param options PDF ayarları.
+   * @param options PDF seçenekleri.
    */
   async getInvoicePdf(
     invoiceOrUuid: InvoiceOrUuid,
     signed = true,
-    options?: PDFOptions
+    options?: PdfOptions
   ): Promise<Buffer> {
     const html = await this.getInvoiceHtml(invoiceOrUuid, signed)
 
-    return htmlToPdf(html, {
-      format: 'A4',
-      ...options
-    })
+    return htmlToPdf(html, options)
   }
 
   /**
@@ -407,9 +414,9 @@ class EInvoiceApi {
     const downloadUrl = this.getInvoiceDownloadUrl(invoiceUuid, signed)
     const { headers = {}, data: zipBuffer } = await axios.get<ArrayBuffer>(
       downloadUrl,
-      {
+      getAxiosRequestConfig({
         responseType: 'arraybuffer'
-      }
+      })
     )
 
     const contentDisposition = headers['content-disposition']
@@ -473,6 +480,26 @@ class EInvoiceApi {
     return `${this.getBaseURL()}/earsiv-services/download?${qs.stringify(
       query
     )}`
+  }
+
+  /**
+   * Belirli bir faturayı XSLT şablonu ile derlemenize olanak tanır.
+   * @param invoiceOrUuid Fatura veya faturanın UUID'i.
+   * @param xsltFilePath XSLT şablonun yolu.
+   * @param options XSLT şablonu derlemesi ve fatura ile ilgili seçenekler.
+   */
+  invoiceXsltRenderer(
+    invoiceOrUuid: InvoiceOrUuid,
+    xsltFilePath: string,
+    options?: InvoiceXsltRendererOptions
+  ): XsltRenderer {
+    const { signed = true, xsltprocOptions } = options || {}
+
+    return new XsltRenderer(
+      xsltFilePath,
+      this.getInvoiceXml.bind(this, invoiceOrUuid, signed),
+      xsltprocOptions
+    )
   }
 
   /**
@@ -925,17 +952,19 @@ class EInvoiceApi {
       data,
       status: httpStatusCode,
       statusText: httpStatusText
-    } = await axios.post<T>(url, qs.stringify(params), {
-      timeout: 10 * 1000,
-      ...config,
-      baseURL,
-      headers: {
-        ...config?.headers,
-        ...EInvoiceApi.DEFAULT_HEADERS,
-        Referrer: `${baseURL}${EInvoiceApi.REFERRER_PATH}`
-      },
-      ...(!isTestEnv && { httpsAgent: allowLegacyRenegotiationForNodeJs })
-    })
+    } = await axios.post<T>(
+      url,
+      qs.stringify(params),
+      getAxiosRequestConfig({
+        ...config,
+        baseURL,
+        headers: {
+          ...EInvoiceApi.DEFAULT_HEADERS,
+          Referrer: `${baseURL}${EInvoiceApi.REFERRER_PATH}`,
+          ...config?.headers
+        }
+      })
+    )
 
     if (!isPlainObject(data)) {
       throw new EInvoiceApiError('Geçersiz API cevabı.', {

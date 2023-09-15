@@ -1,3 +1,4 @@
+import type { XsltprocOptions } from './utils/xsltproc'
 import type InvoiceType from './enums/InvoiceType'
 import type EInvoiceCountry from './enums/EInvoiceCountry'
 import type EInvoiceUnitType from './enums/EInvoiceUnitType'
@@ -33,6 +34,20 @@ export interface FilterBasicInvoices {
    * @default undefined
    */
   approvalStatus?: InvoiceApprovalStatus | string
+}
+
+export interface InvoiceXsltRendererOptions {
+  /**
+   * Faturanın onay durumunu belirler. `true` Onaylandı `false` Onaylanmadı.
+   * @default true
+   */
+  signed?: boolean
+
+  /**
+   * xsltproc komut satırı uygulaması seçenekleri.
+   * @default undefined
+   */
+  xsltprocOptions?: XsltprocOptions
 }
 
 export interface Invoice {

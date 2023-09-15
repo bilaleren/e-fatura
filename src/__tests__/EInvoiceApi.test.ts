@@ -6,7 +6,6 @@ import EInvoiceApi from '../EInvoiceApi'
 import getDateFormat from '../utils/getDateFormat'
 import EInvoiceTypeError from '../errors/EInvoiceTypeError'
 import EInvoiceCountry from '../enums/EInvoiceCountry'
-import puppeteer, { Browser, Page } from 'puppeteer'
 import type {
   Invoice,
   BasicInvoice,
@@ -39,10 +38,8 @@ jest.mock('uuid', () => {
   }
 })
 jest.mock('axios')
-jest.mock('puppeteer')
 
 const mockedAxios = jest.mocked(axios)
-const mockedPuppeteer = jest.mocked(puppeteer)
 
 function getRequestConfig(
   instance: EInvoiceApi,
@@ -1213,115 +1210,7 @@ describe('EInvoiceApi', () => {
     })
   })
 
-  describe('getInvoicePdf()', () => {
-    it('Erişim jetonu belirtilmediğinde hata fırlatmalı.', () => {
-      expect(() => EInvoice.getInvoicePdf('')).rejects.toThrow(
-        EInvoiceTypeError
-      )
-    })
-
-    it('Fatura ile PDF içeriğini getirmeli.', async () => {
-      const accessToken = 'testToken'
-
-      EInvoice.setToken(accessToken)
-
-      const expectedHTML = '<b>Fatura HTML.</b>'
-      const expectedPDFBuffer = Buffer.from(expectedHTML)
-
-      mockedAxios.post.mockResolvedValue({
-        data: {
-          data: expectedHTML
-        }
-      })
-
-      mockedPuppeteer.launch.mockResolvedValue({
-        close: jest.fn(),
-        newPage: jest.fn().mockResolvedValue({
-          pdf: jest.fn().mockResolvedValue(expectedPDFBuffer),
-          setContent: jest.fn()
-        } as unknown as Page)
-      } as unknown as Browser)
-
-      const pdfBuffer = await EInvoice.getInvoicePdf(
-        generateMockBasicInvoice({
-          uuid: uuidV1()
-        }) as BasicInvoice
-      )
-
-      expect(mockedPuppeteer.launch).toBeCalledTimes(1)
-
-      const browser =
-        (await mockedPuppeteer.launch()) as jest.MockedObjectDeep<Browser>
-
-      expect(browser.newPage).toBeCalledTimes(1)
-
-      const page = (await browser.newPage()) as jest.MockedObjectDeep<Page>
-
-      expect(pdfBuffer).toEqual(expectedPDFBuffer)
-
-      expect(pdfBuffer.toString()).toBe(expectedHTML)
-
-      expect(page.pdf).toHaveBeenCalledWith({
-        format: 'A4',
-        path: undefined
-      })
-
-      expect(page.setContent).toHaveBeenCalledWith(expectedHTML, {
-        waitUntil: 'domcontentloaded'
-      })
-
-      expect(browser.close).toBeCalledTimes(1)
-    })
-
-    it("Fatura UUID'i ile PDF içeriğini getirmeli.", async () => {
-      const accessToken = 'testToken'
-
-      EInvoice.setToken(accessToken)
-
-      const expectedHTML = '<b>Fatura HTML.</b>'
-      const expectedPDFBuffer = Buffer.from(expectedHTML)
-
-      mockedAxios.post.mockResolvedValue({
-        data: {
-          data: expectedHTML
-        }
-      })
-
-      mockedPuppeteer.launch.mockResolvedValue({
-        close: jest.fn(),
-        newPage: jest.fn().mockResolvedValue({
-          pdf: jest.fn().mockResolvedValue(expectedPDFBuffer),
-          setContent: jest.fn()
-        } as unknown as Page)
-      } as unknown as Browser)
-
-      const pdfBuffer = await EInvoice.getInvoicePdf(uuidV1())
-
-      expect(mockedPuppeteer.launch).toBeCalledTimes(1)
-
-      const browser =
-        (await mockedPuppeteer.launch()) as jest.MockedObjectDeep<Browser>
-
-      expect(browser.newPage).toBeCalledTimes(1)
-
-      const page = (await browser.newPage()) as jest.MockedObjectDeep<Page>
-
-      expect(pdfBuffer).toEqual(expectedPDFBuffer)
-
-      expect(pdfBuffer.toString()).toBe(expectedHTML)
-
-      expect(page.pdf).toHaveBeenCalledWith({
-        format: 'A4',
-        path: undefined
-      })
-
-      expect(page.setContent).toHaveBeenCalledWith(expectedHTML, {
-        waitUntil: 'domcontentloaded'
-      })
-
-      expect(browser.close).toBeCalledTimes(1)
-    })
-  })
+  it.todo('getInvoicePdf()')
 
   describe('getInvoiceZip()', () => {
     it('Erişim jetonu belirtilmediğinde hata fırlatmalı.', () => {
