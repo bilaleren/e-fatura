@@ -3,11 +3,9 @@ import EInvoiceApi from './EInvoiceApi'
 const EInvoice = EInvoiceApi.create()
 
 export * from './types'
-export type { PdfOptions } from './utils/htmlToPdf'
 export type { EInvoiceApiErrorResponse } from './errors/EInvoiceApiError'
 
 export { EInvoiceApi }
-export { default as htmlToPdf } from './utils/htmlToPdf'
 export { default as XsltRenderer } from './XsltRenderer'
 export { default as getDateFormat } from './utils/getDateFormat'
 export { default as paymentPriceToText } from './utils/paymentPriceToText'

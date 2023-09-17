@@ -31,6 +31,6 @@ xsltRenderer.toPdf()
 // XSLT şablonu ile derlenen faturanın html çıktısını verir.
 xsltRenderer.toHtml()
 
-// XSLT şablonun kullandığı faturaya ait xml (ubl) çıktıyı verir.
+// XSLT şablonun kullandığı faturaya ait xml (ubl) çıktısını verir.
 xsltRenderer.toXml()
 ```

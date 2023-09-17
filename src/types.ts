@@ -12,9 +12,26 @@ export type DateOrDateString = Date | string
 export type InvoiceOrUuid = BasicInvoice | string
 
 export interface Credentials {
+  /**
+   * e-Arşiv kullanıcı adı|kodu.
+   */
   username: string | null
+
+  /**
+   * e-Arşiv hesap şifresi.
+   */
   password: string | null
 }
+
+export type EInvoiceConnectOptions =
+  | Credentials
+  | {
+      /**
+       * e-Arşiv'e anonim olarak bağlanmak için kullanıcı adı ve şifre uygular.
+       * @see EInvoiceApi.setAnonymousCredentials()
+       */
+      anonymous: boolean
+    }
 
 export interface FilterBasicInvoices {
   /**

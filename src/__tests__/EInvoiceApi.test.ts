@@ -267,6 +267,68 @@ describe('EInvoiceApi', () => {
     })
   })
 
+  describe('connect()', () => {
+    it('Kullanıcı adı ve şifre ile bağlantı kurulmalı.', async () => {
+      const setTestModeFn = jest.spyOn(EInvoice, 'setTestMode')
+      const setCredentialsFn = jest.spyOn(EInvoice, 'setCredentials')
+
+      mockedAxios.post.mockResolvedValue({
+        data: {
+          token: 'access-token'
+        }
+      })
+
+      expect(EInvoice.getToken()).toBeNull()
+
+      await EInvoice.connect({
+        username: '123456',
+        password: 'password'
+      })
+
+      expect(EInvoice.getTestMode()).toBe(false)
+      expect(EInvoice.getToken()).toBe('access-token')
+      expect(setTestModeFn).toHaveBeenCalledWith(false)
+      expect(setCredentialsFn).toHaveBeenCalledWith({
+        username: '123456',
+        password: 'password'
+      })
+      expect(EInvoice.getCredentials()).toEqual({
+        username: '123456',
+        password: 'password'
+      })
+    })
+
+    it('Anonim kullanıcı adı ve şifre ile bağlantı kurmalı.', async () => {
+      const setCredentialsFn = jest.spyOn(EInvoice, 'setCredentials')
+      const getAccessTokenFn = jest
+        .spyOn(EInvoice, 'getAccessToken')
+        .mockImplementation(() => Promise.resolve('access-token'))
+
+      mockedAxios.post.mockResolvedValue({
+        data: {
+          userid: '123456'
+        }
+      })
+
+      expect(EInvoice.getTestMode()).toBe(false)
+
+      await EInvoice.connect({
+        anonymous: true
+      })
+
+      expect(EInvoice.getTestMode()).toBe(true)
+      expect(setCredentialsFn).toHaveBeenCalledWith({
+        username: '123456',
+        password: '1'
+      })
+      expect(EInvoice.getCredentials()).toEqual({
+        username: '123456',
+        password: '1'
+      })
+      expect(getAccessTokenFn).toBeCalled()
+    })
+  })
+
   describe('getAccessToken()', () => {
     it('Kullanıcı adı ve şifre belirtilmeiğinde hata fırlatmalı.', () => {
       expect(() => EInvoice.getAccessToken()).rejects.toThrow(EInvoiceTypeError)

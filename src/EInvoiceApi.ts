@@ -26,6 +26,7 @@ import type {
   UserInformation,
   CompanyInformation,
   FilterBasicInvoices,
+  EInvoiceConnectOptions,
   CreateDraftInvoicePayload,
   UpdateDraftInvoicePayload,
   InvoiceXsltRendererOptions,
@@ -148,8 +149,18 @@ class EInvoiceApi {
 
   /**
    * e-Arşiv oturumunu başlatır.
+   * @param options Bağlantı seçenekleri.
    */
-  async connect(): Promise<void> {
+  async connect(options?: EInvoiceConnectOptions): Promise<void> {
+    if (options) {
+      if ('anonymous' in options && options.anonymous) {
+        await this.setAnonymousCredentials()
+      } else if ('username' in options && 'password' in options) {
+        this.setTestMode(false)
+        this.setCredentials(options)
+      }
+    }
+
     await this.getAccessToken()
   }
 
@@ -317,7 +328,7 @@ class EInvoiceApi {
   /**
    * Faturayı UUID değerine göre bulur.
    * @param invoiceOrUuid Fatura veya faturanın UUID'i.
-   * @param filter Faturaları filtrelemek için.
+   * @param filter Faturaları filtreleme seçenekleri.
    */
   async findBasicInvoice(
     invoiceOrUuid: InvoiceOrUuid,
@@ -895,6 +906,8 @@ class EInvoiceApi {
       assoscmd: 'kullaniciOner'
     }
 
+    this.setTestMode(true)
+
     const data = await this.sendRequest<{ userid?: unknown }>(
       '/earsiv-services/esign',
       params
@@ -994,7 +1007,7 @@ class EInvoiceApi {
   private checkToken(): void {
     if (!this.token) {
       throw new EInvoiceTypeError(
-        `Erişim jetonu bulunamadı. "${this.connect.name}", "${this.getAccessToken.name}" metodlarından birini kullanmayı deneyin.`
+        `Erişim jetonu sağlanmamış. (${this.connect.name}, ${this.getAccessToken.name}) metodlarından birini kullanmayı deneyin.`
       )
     }
   }
@@ -1002,7 +1015,7 @@ class EInvoiceApi {
   private checkCredentials(): void {
     if (!this.username || !this.password) {
       throw new EInvoiceTypeError(
-        `Kullanıcı adı veya şifre tanımlanmadı. ${this.setCredentials.name}, ${this.setAnonymousCredentials.name} metodlarından birini kullanarak giriş bilgilerini sağlayın.`
+        `Kullanıcı adı veya şifre sağlanmamış. (${this.connect.name}, ${this.setCredentials.name}, ${this.setAnonymousCredentials.name}) metodlarından birini kullanarak giriş bilgilerini sağlayın.`
       )
     }
   }

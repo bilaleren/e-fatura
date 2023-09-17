@@ -27,7 +27,6 @@ npm i e-fatura
 import EInvoice, {
   getDateFormat, // Tarih formatını alır (Gün/Ay/Yıl veya Saat:Dakika:Saniye)
   paymentPriceToText, // Ödenecek tutarı metine dönüştürür
-  htmlToPdf, // Html metnini pdf'e dönüştürür
   XsltRenderer, // Faturayı XSLT şablonu ile işler
   EInvoiceCountry, // Ülkeler
   EInvoiceApi, // e-Arşiv API servisi
@@ -72,7 +71,24 @@ https://earsivportal.efatura.gov.tr/intragiris.html
 
 https://earsivportaltest.efatura.gov.tr/login.jsp
 
-Test ortamı için kullanım örneği;
+### Test ortamı için kullanım;
+
+**Kullanım 1**
+
+```typescript
+import EInvoice from 'e-fatura'
+
+await EInvoice.connect({
+  anonymous: true
+})
+
+// ... Diğer işlemler. Fatura oluşturma, listeleme, düzenleme vb.
+
+// e-Arşiv oturumunu sonlandırır.
+await EInvoice.logout()
+```
+
+**Kullanım 2**
 
 ```typescript
 import EInvoice from 'e-fatura'
@@ -92,13 +108,29 @@ await EInvoice.connect() // veya EInvoice.getAccessToken()
 await EInvoice.logout()
 ```
 
-Ürün ortamı için kullanım örneği;
+### Ürün ortamı için kullanım;
+
+**Kullanım 1**
 
 ```typescript
 import EInvoice from 'e-fatura'
 
-// Test modunu aktif/deaktif eder.
-EInvoice.setTestMode(false) // varsayılan olarak false
+// Muhasebecinizden aldığınız giriş bilgileri.
+await EInvoice.connect({
+  username: 'kullanıcı kodu|adı',
+  password: 'şifre'
+})
+
+// ... Diğer işlemler. Fatura oluşturma, listeleme, düzenleme vb.
+
+// e-Arşiv oturumunu sonlandırır.
+await EInvoice.logout()
+```
+
+**Kullanım 2**
+
+```typescript
+import EInvoice from 'e-fatura'
 
 // Muhasebecinizden aldığınız giriş bilgileri.
 EInvoice.setCredentials({
@@ -114,7 +146,6 @@ await EInvoice.connect() // veya EInvoice.getAccessToken()
 // e-Arşiv oturumunu sonlandırır.
 await EInvoice.logout()
 ```
-
 
 ## Hata Ayıklama
 
