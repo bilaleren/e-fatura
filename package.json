@@ -1,6 +1,6 @@
 {
   "name": "e-fatura",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "e-Arşiv üzerinden fatura oluşturur, faturaları listeler, fatura(ları) imzalar ve daha fazlasını yapar.",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
