@@ -31,13 +31,13 @@
     "node": ">=13.2"
   },
   "dependencies": {
-    "axios": "0.27.2",
+    "axios": "1.5.1",
     "lodash.merge": "^4.6.2",
     "number-to-text": "^0.3.9",
     "uuid": "^9.0.0"
   },
   "peerDependencies": {
-    "axios": ">=0.27.2",
+    "axios": ">=1.0.0",
     "fflate": ">=0.8.0",
     "puppeteer": ">=19.4.0",
     "uuid": ">=8.0.0"
