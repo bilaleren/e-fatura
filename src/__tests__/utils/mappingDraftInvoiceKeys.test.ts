@@ -1,8 +1,7 @@
-import { v1 as uuidV1 } from 'uuid'
-import EInvoiceTypeError from '../../errors/EInvoiceTypeError'
+import { EInvoiceTypeError } from '../../errors'
+import { generateMockInvoice } from '../../utils/test'
+import { uuidV1, mappingDraftInvoiceKeys } from '../../utils'
 import type { CreateDraftInvoicePayload } from '../../types'
-import generateMockInvoice from '../../utils/test/generateMockInvoice'
-import mappingDraftInvoiceKeys from '../../utils/mappingDraftInvoiceKeys'
 
 describe('mappingDraftInvoiceKeys()', () => {
   it('Fatura verisi obje olmadığında hata fırlatmalı.', () => {

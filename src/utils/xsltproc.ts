@@ -53,15 +53,15 @@ function xsltproc(
       ...paramsToArgs(stringParams, 'stringparam'),
       ...args
     ])
-    const buffer: Buffer[] = []
+    const chunks: Buffer[] = []
 
     cmd.stdout.on('data', (data: string | Buffer) => {
-      buffer.push(Buffer.from(data))
+      chunks.push(Buffer.from(data))
     })
 
     cmd.stdout.on('close', (code: unknown) => {
       if (code === false) {
-        resolve(Buffer.concat(buffer))
+        resolve(Buffer.concat(chunks))
       } else {
         reject(new Error(`xsltproc exited with code: ${code}`))
       }

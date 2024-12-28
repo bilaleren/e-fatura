@@ -1,6 +1,6 @@
 import deepMerge from 'lodash.merge'
 import getDateFormat from '../getDateFormat'
-import InvoiceApprovalStatus from '../../enums/InvoiceApprovalStatus'
+import { InvoiceApprovalStatus } from '../../enums'
 
 interface GenerateMockBasicInvoiceOptions {
   uuid: string

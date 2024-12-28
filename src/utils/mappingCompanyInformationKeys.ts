@@ -1,5 +1,5 @@
 import isPlainObject from './isPlainObject'
-import EInvoiceTypeError from '../errors/EInvoiceTypeError'
+import { EInvoiceTypeError } from '../errors'
 
 function mappingCompanyInformationKeys(
   value: unknown,

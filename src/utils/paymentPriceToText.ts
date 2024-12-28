@@ -1,9 +1,12 @@
 import { greaterThanValidator } from './validators'
-import numberToText, { ConvertToNumberOptions } from 'number-to-text'
+import numberToText, { ConvertToTextOptions } from 'number-to-text'
 
 import 'number-to-text/converters/tr'
 
-function formatCase(value: string, caseOption: string): string {
+function formatCase(
+  value: string,
+  caseOption: Exclude<ConvertToTextOptions['case'], undefined>
+): string {
   switch (caseOption) {
     default:
     case 'upperCase':
@@ -18,7 +21,7 @@ function formatCase(value: string, caseOption: string): string {
 
 function paymentPriceToText(
   paymentPrice: number,
-  options?: ConvertToNumberOptions
+  options?: ConvertToTextOptions
 ): string {
   greaterThanValidator(paymentPrice, 0, 'paymentPrice')
 

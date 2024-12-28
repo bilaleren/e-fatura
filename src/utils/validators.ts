@@ -1,4 +1,4 @@
-import EInvoiceTypeError from '../errors/EInvoiceTypeError'
+import { EInvoiceTypeError } from '../errors'
 
 export function stringValidator(
   value: unknown,

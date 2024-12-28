@@ -1,5 +1,5 @@
 import getDateFormat from '../../utils/getDateFormat'
-import EInvoiceTypeError from '../../errors/EInvoiceTypeError'
+import { EInvoiceTypeError } from '../../errors'
 
 describe('getDateFormat()', () => {
   it('Bugünü DD/MM/YYYY formatında döndürmeli.', () => {

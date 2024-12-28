@@ -1,7 +1,3 @@
-class EInvoiceTypeError extends TypeError {
-  constructor(public message: string) {
-    super(message)
-  }
-}
+class EInvoiceTypeError extends TypeError {}
 
 export default EInvoiceTypeError

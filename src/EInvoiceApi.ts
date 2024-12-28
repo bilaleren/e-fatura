@@ -1,23 +1,28 @@
 import https from 'https'
 import crypto from 'crypto'
 import qs from 'querystring'
-import { v1 as uuidV1 } from 'uuid'
-import deepMerge from 'lodash.merge'
-import toArray from './utils/toArray'
 import XsltRenderer from './XsltRenderer'
-import axios, { AxiosRequestConfig } from 'axios'
-import isPlainObject from './utils/isPlainObject'
-import getDateFormat from './utils/getDateFormat'
-import htmlToPdf, { PdfOptions } from './utils/htmlToPdf'
-import EInvoiceTypeError from './errors/EInvoiceTypeError'
-import EInvoiceApiError from './errors/EInvoiceApiError'
-import mappingInvoiceKeys from './utils/mappingInvoiceKeys'
-import EInvoiceApiErrorCode from './enums/EInvoiceApiErrorCode'
-import mappingBasicInvoiceKeys from './utils/mappingBasicInvoiceKeys'
-import mappingDraftInvoiceKeys from './utils/mappingDraftInvoiceKeys'
-import type InvoiceApprovalStatus from './enums/InvoiceApprovalStatus'
-import mappingUserInformationKeys from './utils/mappingUserInformationKeys'
-import mappingCompanyInformationKeys from './utils/mappingCompanyInformationKeys'
+import axios, { type AxiosRequestConfig } from 'axios'
+import {
+  uuidV1,
+  toArray,
+  deepMerge,
+  htmlToPdf,
+  isPlainObject,
+  getDateFormat,
+  mappingInvoiceKeys,
+  mappingBasicInvoiceKeys,
+  mappingDraftInvoiceKeys,
+  mappingUserInformationKeys,
+  mappingCompanyInformationKeys,
+  type PdfOptions
+} from './utils'
+import {
+  EInvoiceApiError,
+  EInvoiceMissingTokenError,
+  EInvoiceMissingCredentialsError
+} from './errors'
+import { EInvoiceApiErrorCode, type InvoiceApprovalStatus } from './enums'
 import type {
   Invoice,
   Credentials,
@@ -78,11 +83,17 @@ class EInvoiceApi {
       'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.67 Safari/537.36'
   }
 
+  constructor(credentials?: Credentials) {
+    if (credentials) {
+      this.setCredentials(credentials)
+    }
+  }
+
   /**
    * Yeni bir e-Arşiv API örneği oluşturur.
    */
-  static create(): EInvoiceApi {
-    return new EInvoiceApi()
+  static create(credentials?: Credentials): EInvoiceApi {
+    return new EInvoiceApi(credentials)
   }
 
   /**
@@ -98,7 +109,6 @@ class EInvoiceApi {
    */
   setToken(value: string | null): EInvoiceApi {
     this.token = value
-
     return this
   }
 
@@ -115,7 +125,6 @@ class EInvoiceApi {
    */
   setTestMode(value: boolean): EInvoiceApi {
     this.testMode = value
-
     return this
   }
 
@@ -161,7 +170,7 @@ class EInvoiceApi {
       }
     }
 
-    await this.getAccessToken()
+    await this.initAccessToken()
   }
 
   /**
@@ -178,7 +187,7 @@ class EInvoiceApi {
 
     await this.sendRequest(EInvoiceApi.TOKEN_PATH, params)
 
-    this.token = null
+    this.setToken(null)
   }
 
   /**
@@ -208,9 +217,14 @@ class EInvoiceApi {
       })
     }
 
-    this.token = data.token
-
     return data.token
+  }
+
+  /**
+   * Erişim jetonunu alır ve `this.token` değişkenine atar.
+   */
+  async initAccessToken(): Promise<void> {
+    this.setToken(await this.getAccessToken())
   }
 
   /**
@@ -1006,7 +1020,7 @@ class EInvoiceApi {
 
   private checkToken(): void {
     if (!this.token) {
-      throw new EInvoiceTypeError(
+      throw new EInvoiceMissingTokenError(
         `Erişim jetonu sağlanmamış. (${this.connect.name}, ${this.getAccessToken.name}) metodlarından birini kullanmayı deneyin.`
       )
     }
@@ -1014,8 +1028,9 @@ class EInvoiceApi {
 
   private checkCredentials(): void {
     if (!this.username || !this.password) {
-      throw new EInvoiceTypeError(
-        `Kullanıcı adı veya şifre sağlanmamış. (${this.connect.name}, ${this.setCredentials.name}, ${this.setAnonymousCredentials.name}) metodlarından birini kullanarak giriş bilgilerini sağlayın.`
+      throw new EInvoiceMissingCredentialsError(
+        `Kullanıcı adı veya şifre sağlanmamış. (${this.connect.name}, ${this.setCredentials.name}, ${this.setAnonymousCredentials.name}) metodlarından birini kullanarak giriş bilgilerini sağlayın.`,
+        this.getCredentials()
       )
     }
   }

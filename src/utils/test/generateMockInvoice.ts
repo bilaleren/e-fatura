@@ -1,9 +1,11 @@
-import deepMerge from 'lodash.merge'
+import deepMerge from '../deepMerge'
 import getDateFormat from '../getDateFormat'
-import InvoiceType from '../../enums/InvoiceType'
-import EInvoiceCountry from '../../enums/EInvoiceCountry'
-import EInvoiceUnitType from '../../enums/EInvoiceUnitType'
-import EInvoiceCurrencyType from '../../enums/EInvoiceCurrencyType'
+import {
+  InvoiceType,
+  EInvoiceCountry,
+  EInvoiceUnitType,
+  EInvoiceCurrencyType
+} from '../../enums'
 
 interface GenerateMockInvoiceOptions {
   uuid: string

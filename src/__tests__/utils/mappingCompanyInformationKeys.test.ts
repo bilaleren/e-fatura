@@ -1,5 +1,5 @@
-import EInvoiceTypeError from '../../errors/EInvoiceTypeError'
-import mappingCompanyInformationKeys from '../../utils/mappingCompanyInformationKeys'
+import { EInvoiceTypeError } from '../../errors'
+import { mappingCompanyInformationKeys } from '../../utils'
 
 describe('mappingCompanyInformationKeys()', () => {
   it('Şirket bilgileri obje olmadığında hata fırlatmalı.', () => {

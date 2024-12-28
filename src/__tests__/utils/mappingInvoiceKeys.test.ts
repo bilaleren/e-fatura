@@ -1,7 +1,6 @@
-import { v1 as uuidV1 } from 'uuid'
-import EInvoiceTypeError from '../../errors/EInvoiceTypeError'
-import mappingInvoiceKeys from '../../utils/mappingInvoiceKeys'
-import generateMockInvoice from '../../utils/test/generateMockInvoice'
+import { EInvoiceTypeError } from '../../errors'
+import { uuidV1, mappingInvoiceKeys } from '../../utils'
+import { generateMockInvoice } from '../../utils/test'
 
 describe('mappingInvoiceKeys()', () => {
   it('Fatura verisi obje olmadığında hata fırlatmalı.', () => {

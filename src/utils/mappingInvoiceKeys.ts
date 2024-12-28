@@ -1,5 +1,5 @@
 import isPlainObject from './isPlainObject'
-import EInvoiceTypeError from '../errors/EInvoiceTypeError'
+import { EInvoiceTypeError } from '../errors'
 
 function mappingInvoiceKeys(value: unknown): Record<string, unknown> {
   if (!isPlainObject(value)) {

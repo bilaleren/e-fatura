@@ -28,11 +28,13 @@ import EInvoice, {
   getDateFormat, // Tarih formatını alır (Gün/Ay/Yıl veya Saat:Dakika:Saniye)
   paymentPriceToText, // Ödenecek tutarı metine dönüştürür
   XsltRenderer, // Faturayı XSLT şablonu ile işler
-  EInvoiceCountry, // Ülkeler
   EInvoiceApi, // e-Arşiv API servisi
   EInvoiceTypeError, // Tür hata sınıfı
   EInvoiceApiError, // API hata sınıfı
+  EInvoiceMissingTokenError, // Eksik veya hatalı erişim jetonu hata sınıfı
+  EInvoiceMissingCredentialsError, // Eksik veya hatalı giriş bilgileri hata sınıfı
   InvoiceType, // Fatura türü
+  EInvoiceCountry, // Ülkeler
   EInvoiceApiErrorCode, // API hata kodları
   InvoiceApprovalStatus, // Fatura onay durumu
   EInvoiceCurrencyType, // Param birimi
@@ -54,12 +56,12 @@ import EInvoice, {
 - [Faturanın ZIP çıktısını alma.](docs/GET_INVOICE_ZIP.md)
 - [Faturanın XML çıktısını alma.](docs/GET_INVOICE_XML.md)
 - [Faturanın indirme bağlantısını alma.](docs/GET_INVOICE_DOWNLOAD_URL.md)
-- [XSLT şablonu ile fatura işleme. (Deneysel)](docs/INVOICE_XSLT_RENDERER.md)
 - [Fatura silme.](docs/DELETE_DRAFT_INVOICE.md)
 - [Fatura iptal etme.](docs/CREATE_CANCEL_REQUEST_FOR_INVOICE.md)
-- [Kullanıcı (şirket) bilgilerini çekme.](docs/GET_USER_INFORMATION.md)
+- [Kullanıcı (şirket) bilgilerini getirme.](docs/GET_USER_INFORMATION.md)
 - [Kullanıcı (şirket) bilgilerini güncelleme.](docs/UPDATE_USER_INFORMATION.md)
 - [SMS ile Fatura doğrulama ve onaylama.](docs/SIGN_INVOICE_VIA_SMS.md)
+- [XSLT şablonu ile fatura işleme. (Deneysel)](docs/INVOICE_XSLT_RENDERER.md)
 
 ## Kullanım
 
@@ -156,7 +158,9 @@ import axios from 'axios'
 import EInvoice, {
   EInvoiceApiError,
   EInvoiceTypeError,
-  EInvoiceApiErrorCode
+  EInvoiceApiErrorCode,
+  EInvoiceMissingTokenError,
+  EInvoiceMissingCredentialsError
 } from 'e-fatura'
 
 try {
@@ -165,6 +169,10 @@ try {
 } catch (e) {
   if (e instanceof EInvoiceTypeError) {
     console.error('Tür hatası meydana geldi:', e)
+  } else if (e instanceof EInvoiceMissingTokenError) {
+    console.error('Erişim jetonu sağlanmadı.')
+  } else if (e instanceof EInvoiceMissingCredentialsError) {
+    console.error('Giriş bilgileri sağlanmadı veya eksik sağlandı:', e.credentials)
   } else if (e instanceof EInvoiceApiError) {
     const response = e.getResponse()
 

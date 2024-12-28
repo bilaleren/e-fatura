@@ -1,4 +1,4 @@
-### Kullanıcı (Şirket) Bilgilerini Çekme
+### Kullanıcı (Şirket) Bilgilerini Getirme
 
 e-Arşiv üzerinde kayıtlı olan kullanıcı (şirket) bilgilerini alma.
 

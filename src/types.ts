@@ -1,9 +1,11 @@
-import type { XsltprocOptions } from './utils/xsltproc'
-import type InvoiceType from './enums/InvoiceType'
-import type EInvoiceCountry from './enums/EInvoiceCountry'
-import type EInvoiceUnitType from './enums/EInvoiceUnitType'
-import type EInvoiceCurrencyType from './enums/EInvoiceCurrencyType'
-import type InvoiceApprovalStatus from './enums/InvoiceApprovalStatus'
+import type { XsltprocOptions } from './utils'
+import type {
+  InvoiceType,
+  EInvoiceCountry,
+  EInvoiceUnitType,
+  EInvoiceCurrencyType,
+  InvoiceApprovalStatus
+} from './enums'
 
 type OtherProps = Record<string, unknown>
 
@@ -15,12 +17,12 @@ export interface Credentials {
   /**
    * e-Arşiv kullanıcı adı|kodu.
    */
-  username: string | null
+  readonly username: string | null
 
   /**
    * e-Arşiv hesap şifresi.
    */
-  password: string | null
+  readonly password: string | null
 }
 
 export type EInvoiceConnectOptions =

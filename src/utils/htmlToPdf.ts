@@ -1,6 +1,6 @@
 import type { PDFOptions as BasePDFOptions } from 'puppeteer'
 
-export interface PdfOptions extends Omit<BasePDFOptions, 'path'> {
+export type PdfOptions = Omit<BasePDFOptions, 'path'> & {
   args?: string[]
 }
 

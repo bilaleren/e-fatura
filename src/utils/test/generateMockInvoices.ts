@@ -1,6 +1,6 @@
-import { v1 as uuidV1 } from 'uuid'
+import uuidV1 from '../uuidV1'
 import generateMockBasicInvoice from './generateMockBasicInvoice'
-import InvoiceApprovalStatus from '../../enums/InvoiceApprovalStatus'
+import { InvoiceApprovalStatus } from '../../enums'
 
 function generateMockInvoices(): Record<string, unknown>[] {
   return [

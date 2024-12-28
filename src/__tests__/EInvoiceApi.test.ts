@@ -1,11 +1,31 @@
-import axios, { AxiosRequestConfig } from 'axios'
-import { v1 as uuidV1 } from 'uuid'
+import axios, { type AxiosRequestConfig } from 'axios'
 import qs from 'querystring'
 import { zipSync, unzipSync } from 'fflate'
 import EInvoiceApi from '../EInvoiceApi'
-import getDateFormat from '../utils/getDateFormat'
-import EInvoiceTypeError from '../errors/EInvoiceTypeError'
-import EInvoiceCountry from '../enums/EInvoiceCountry'
+import {
+  uuidV1,
+  getDateFormat,
+  mappingInvoiceKeys,
+  mappingDraftInvoiceKeys,
+  mappingBasicInvoiceKeys,
+  mappingUserInformationKeys,
+  mappingCompanyInformationKeys
+} from '../utils'
+import {
+  generateMockInvoice,
+  generateMockInvoices,
+  generateMockBasicInvoice
+} from '../utils/test'
+import {
+  EInvoiceApiError,
+  EInvoiceMissingTokenError,
+  EInvoiceMissingCredentialsError
+} from '../errors'
+import {
+  EInvoiceCountry,
+  EInvoiceApiErrorCode,
+  InvoiceApprovalStatus
+} from '../enums'
 import type {
   Invoice,
   BasicInvoice,
@@ -14,17 +34,6 @@ import type {
   CreateDraftInvoicePayload,
   UpdateDraftInvoicePayload
 } from '../types'
-import EInvoiceApiError from '../errors/EInvoiceApiError'
-import mappingInvoiceKeys from '../utils/mappingInvoiceKeys'
-import EInvoiceApiErrorCode from '../enums/EInvoiceApiErrorCode'
-import InvoiceApprovalStatus from '../enums/InvoiceApprovalStatus'
-import generateMockInvoice from '../utils/test/generateMockInvoice'
-import generateMockInvoices from '../utils/test/generateMockInvoices'
-import mappingDraftInvoiceKeys from '../utils/mappingDraftInvoiceKeys'
-import mappingBasicInvoiceKeys from '../utils/mappingBasicInvoiceKeys'
-import mappingUserInformationKeys from '../utils/mappingUserInformationKeys'
-import generateMockBasicInvoice from '../utils/test/generateMockBasicInvoice'
-import mappingCompanyInformationKeys from '../utils/mappingCompanyInformationKeys'
 
 const mockUuidValue = '0e6f07f0-fe5b-11ed-b085-07a0e2821700'
 
@@ -331,7 +340,9 @@ describe('EInvoiceApi', () => {
 
   describe('getAccessToken()', () => {
     it('Kullanıcı adı ve şifre belirtilmeiğinde hata fırlatmalı.', () => {
-      expect(() => EInvoice.getAccessToken()).rejects.toThrow(EInvoiceTypeError)
+      expect(() => EInvoice.getAccessToken()).rejects.toThrow(
+        EInvoiceMissingCredentialsError
+      )
     })
 
     describe('setTestMode(true)', () => {
@@ -355,7 +366,7 @@ describe('EInvoiceApi', () => {
         const credentials = EInvoice.getCredentials()
 
         expect(token).toBe(testToken)
-        expect(EInvoice.getToken()).toBe(testToken)
+        expect(EInvoice.getToken()).toBe(null)
 
         expect(mockedAxios.post).toHaveBeenCalledWith(
           EInvoiceApi.TOKEN_PATH,
@@ -391,6 +402,8 @@ describe('EInvoiceApi', () => {
           EInvoiceApiError
         )
 
+        expect(EInvoice.getToken()).toBe(null)
+
         expect(mockedAxios.post).toHaveBeenCalledWith(
           EInvoiceApi.TOKEN_PATH,
           qs.stringify({
@@ -424,6 +437,8 @@ describe('EInvoiceApi', () => {
         await expect(() => EInvoice.getAccessToken()).rejects.toThrow(
           EInvoiceApiError
         )
+
+        expect(EInvoice.getToken()).toBe(null)
 
         expect(mockedAxios.post).toHaveBeenCalledWith(
           EInvoiceApi.TOKEN_PATH,
@@ -461,7 +476,7 @@ describe('EInvoiceApi', () => {
         const credentials = EInvoice.getCredentials()
 
         expect(token).toBe(testToken)
-        expect(EInvoice.getToken()).toBe(testToken)
+        expect(EInvoice.getToken()).toBe(null)
 
         expect(mockedAxios.post).toHaveBeenCalledWith(
           EInvoiceApi.TOKEN_PATH,
@@ -497,6 +512,8 @@ describe('EInvoiceApi', () => {
           EInvoiceApiError
         )
 
+        expect(EInvoice.getToken()).toBe(null)
+
         expect(mockedAxios.post).toHaveBeenCalledWith(
           EInvoiceApi.TOKEN_PATH,
           qs.stringify({
@@ -531,6 +548,234 @@ describe('EInvoiceApi', () => {
           EInvoiceApiError
         )
 
+        expect(EInvoice.getToken()).toBe(null)
+
+        expect(mockedAxios.post).toHaveBeenCalledWith(
+          EInvoiceApi.TOKEN_PATH,
+          qs.stringify({
+            rtype: 'json',
+            userid: credentials.username,
+            sifre: credentials.password,
+            sifre2: credentials.password,
+            parola: '1',
+            assoscmd: 'anologin'
+          }),
+          getRequestConfig(EInvoice)
+        )
+      })
+    })
+  })
+
+  describe('initAccessToken()', () => {
+    it('Kullanıcı adı ve şifre belirtilmeiğinde hata fırlatmalı.', () => {
+      expect(() => EInvoice.getAccessToken()).rejects.toThrow(
+        EInvoiceMissingCredentialsError
+      )
+    })
+
+    describe('setTestMode(true)', () => {
+      it("e-Arşiv'e bağlanmak için erişim jetonu atamalı.", async () => {
+        EInvoice.setTestMode(true)
+
+        EInvoice.setCredentials({
+          username: 'testUsername',
+          password: 'testPassword'
+        })
+
+        const testToken = 'testToken'
+
+        mockedAxios.post.mockResolvedValue({
+          data: {
+            token: testToken
+          }
+        })
+
+        await EInvoice.initAccessToken()
+        const credentials = EInvoice.getCredentials()
+
+        expect(EInvoice.getToken()).toBe(testToken)
+
+        expect(mockedAxios.post).toHaveBeenCalledWith(
+          EInvoiceApi.TOKEN_PATH,
+          qs.stringify({
+            rtype: 'json',
+            userid: credentials.username,
+            sifre: credentials.password,
+            sifre2: credentials.password,
+            parola: '1',
+            assoscmd: 'login'
+          }),
+          getRequestConfig(EInvoice)
+        )
+      })
+
+      it('Erişim jetonu "null" olduğunda hata fırlatmalı.', async () => {
+        EInvoice.setTestMode(true)
+
+        EInvoice.setCredentials({
+          username: 'testUsername',
+          password: 'testPassword'
+        })
+
+        const credentials = EInvoice.getCredentials()
+
+        mockedAxios.post.mockResolvedValue({
+          data: {
+            token: null
+          }
+        })
+
+        await expect(() => EInvoice.initAccessToken()).rejects.toThrow(
+          EInvoiceApiError
+        )
+
+        expect(EInvoice.getToken()).toBe(null)
+
+        expect(mockedAxios.post).toHaveBeenCalledWith(
+          EInvoiceApi.TOKEN_PATH,
+          qs.stringify({
+            rtype: 'json',
+            userid: credentials.username,
+            sifre: credentials.password,
+            sifre2: credentials.password,
+            parola: '1',
+            assoscmd: 'login'
+          }),
+          getRequestConfig(EInvoice)
+        )
+      })
+
+      it('Erişim jetonu "boş bir dizi" olduğunda hata fırlatmalı.', async () => {
+        EInvoice.setTestMode(true)
+
+        EInvoice.setCredentials({
+          username: 'testUsername',
+          password: 'testPassword'
+        })
+
+        const credentials = EInvoice.getCredentials()
+
+        mockedAxios.post.mockResolvedValue({
+          data: {
+            token: ''
+          }
+        })
+
+        await expect(() => EInvoice.initAccessToken()).rejects.toThrow(
+          EInvoiceApiError
+        )
+
+        expect(EInvoice.getToken()).toBe(null)
+
+        expect(mockedAxios.post).toHaveBeenCalledWith(
+          EInvoiceApi.TOKEN_PATH,
+          qs.stringify({
+            rtype: 'json',
+            userid: credentials.username,
+            sifre: credentials.password,
+            sifre2: credentials.password,
+            parola: '1',
+            assoscmd: 'login'
+          }),
+          getRequestConfig(EInvoice)
+        )
+      })
+    })
+
+    describe('setTestMode(false)', () => {
+      it("e-Arşiv'e bağlanmak için erişim jetonu atamalı.", async () => {
+        EInvoice.setTestMode(false)
+
+        EInvoice.setCredentials({
+          username: 'testUsername',
+          password: 'testPassword'
+        })
+
+        const testToken = 'testToken'
+
+        mockedAxios.post.mockResolvedValue({
+          data: {
+            token: testToken
+          }
+        })
+
+        await EInvoice.initAccessToken()
+        const credentials = EInvoice.getCredentials()
+
+        expect(EInvoice.getToken()).toBe(testToken)
+
+        expect(mockedAxios.post).toHaveBeenCalledWith(
+          EInvoiceApi.TOKEN_PATH,
+          qs.stringify({
+            rtype: 'json',
+            userid: credentials.username,
+            sifre: credentials.password,
+            sifre2: credentials.password,
+            parola: '1',
+            assoscmd: 'anologin'
+          }),
+          getRequestConfig(EInvoice)
+        )
+      })
+
+      it('Erişim jetonu "null" olduğunda hata fırlatmalı.', async () => {
+        EInvoice.setTestMode(false)
+
+        EInvoice.setCredentials({
+          username: 'testUsername',
+          password: 'testPassword'
+        })
+
+        const credentials = EInvoice.getCredentials()
+
+        mockedAxios.post.mockResolvedValue({
+          data: {
+            token: null
+          }
+        })
+
+        await expect(() => EInvoice.initAccessToken()).rejects.toThrow(
+          EInvoiceApiError
+        )
+
+        expect(EInvoice.getToken()).toBe(null)
+
+        expect(mockedAxios.post).toHaveBeenCalledWith(
+          EInvoiceApi.TOKEN_PATH,
+          qs.stringify({
+            rtype: 'json',
+            userid: credentials.username,
+            sifre: credentials.password,
+            sifre2: credentials.password,
+            parola: '1',
+            assoscmd: 'anologin'
+          }),
+          getRequestConfig(EInvoice)
+        )
+      })
+
+      it('Erişim jetonu "boş bir dizi" olduğunda hata fırlatmalı.', async () => {
+        EInvoice.setTestMode(false)
+
+        EInvoice.setCredentials({
+          username: 'testUsername',
+          password: 'testPassword'
+        })
+
+        const credentials = EInvoice.getCredentials()
+
+        mockedAxios.post.mockResolvedValue({
+          data: {
+            token: ''
+          }
+        })
+
+        await expect(() => EInvoice.initAccessToken()).rejects.toThrow(
+          EInvoiceApiError
+        )
+
+        expect(EInvoice.getToken()).toBe(null)
+
         expect(mockedAxios.post).toHaveBeenCalledWith(
           EInvoiceApi.TOKEN_PATH,
           qs.stringify({
@@ -549,7 +794,9 @@ describe('EInvoiceApi', () => {
 
   describe('getInvoice()', () => {
     it('Erişim jetonu belirtilmediğinde hata fırlatmalı.', () => {
-      expect(() => EInvoice.getInvoice('')).rejects.toThrow(EInvoiceTypeError)
+      expect(() => EInvoice.getInvoice('')).rejects.toThrow(
+        EInvoiceMissingTokenError
+      )
     })
 
     it('Faturaya göre fatura getirmeli.', async () => {
@@ -681,7 +928,7 @@ describe('EInvoiceApi', () => {
 
   describe('logout()', () => {
     it('Erişim jetonu belirtilmediğinde hata fırlatmalı.', () => {
-      expect(() => EInvoice.logout()).rejects.toThrow(EInvoiceTypeError)
+      expect(() => EInvoice.logout()).rejects.toThrow(EInvoiceMissingTokenError)
     })
 
     it('e-Arşiv oturumunu sonlandırmalı.', async () => {
@@ -716,7 +963,7 @@ describe('EInvoiceApi', () => {
   describe('getBasicInvoices()', () => {
     it('Erişim jetonu belirtilmediğinde hata fırlatmalı.', () => {
       expect(() => EInvoice.getBasicInvoices()).rejects.toThrow(
-        EInvoiceTypeError
+        EInvoiceMissingTokenError
       )
     })
 
@@ -865,7 +1112,7 @@ describe('EInvoiceApi', () => {
   describe('getBasicInvoicesIssuedToMe()', () => {
     it('Erişim jetonu belirtilmediğinde hata fırlatmalı.', () => {
       expect(() => EInvoice.getBasicInvoicesIssuedToMe()).rejects.toThrow(
-        EInvoiceTypeError
+        EInvoiceMissingTokenError
       )
     })
 
@@ -1014,7 +1261,7 @@ describe('EInvoiceApi', () => {
   describe('findBasicInvoice()', () => {
     it('Erişim jetonu belirtilmediğinde hata fırlatmalı.', () => {
       expect(() => EInvoice.findBasicInvoice('')).rejects.toThrow(
-        EInvoiceTypeError
+        EInvoiceMissingTokenError
       )
     })
 
@@ -1142,7 +1389,7 @@ describe('EInvoiceApi', () => {
   describe('getInvoiceHtml()', () => {
     it('Erişim jetonu belirtilmediğinde hata fırlatmalı.', () => {
       expect(() => EInvoice.getInvoiceHtml('')).rejects.toThrow(
-        EInvoiceTypeError
+        EInvoiceMissingTokenError
       )
     })
 
@@ -1277,7 +1524,7 @@ describe('EInvoiceApi', () => {
   describe('getInvoiceZip()', () => {
     it('Erişim jetonu belirtilmediğinde hata fırlatmalı.', () => {
       expect(() => EInvoice.getInvoiceZip('')).rejects.toThrow(
-        EInvoiceTypeError
+        EInvoiceMissingTokenError
       )
     })
 
@@ -1331,7 +1578,7 @@ describe('EInvoiceApi', () => {
   describe('getInvoiceXml()', () => {
     it('Erişim jetonu belirtilmediğinde hata fırlatmalı.', () => {
       expect(() => EInvoice.getInvoiceXml('')).rejects.toThrow(
-        EInvoiceTypeError
+        EInvoiceMissingTokenError
       )
     })
 
@@ -1385,7 +1632,7 @@ describe('EInvoiceApi', () => {
   describe('getInvoiceDownloadUrl()', () => {
     it('Erişim jetonu belirtilmediğinde hata fırlatmalı.', () => {
       expect(() => EInvoice.getInvoiceDownloadUrl('')).toThrow(
-        EInvoiceTypeError
+        EInvoiceMissingTokenError
       )
     })
 
@@ -1442,7 +1689,7 @@ describe('EInvoiceApi', () => {
   describe('getUserInformation()', () => {
     it('Erişim jetonu belirtilmediğinde hata fırlatmalı.', () => {
       expect(() => EInvoice.getUserInformation()).rejects.toThrow(
-        EInvoiceTypeError
+        EInvoiceMissingTokenError
       )
     })
 
@@ -1502,7 +1749,7 @@ describe('EInvoiceApi', () => {
   describe('updateUserInformation()', () => {
     it('Erişim jetonu belirtilmediğinde hata fırlatmalı.', () => {
       expect(() => EInvoice.updateUserInformation({})).rejects.toThrow(
-        EInvoiceTypeError
+        EInvoiceMissingTokenError
       )
     })
 
@@ -1587,7 +1834,7 @@ describe('EInvoiceApi', () => {
   describe('getCompanyInformation()', () => {
     it('Erişim jetonu belirtilmediğinde hata fırlatmalı.', () => {
       expect(() => EInvoice.getCompanyInformation('')).rejects.toThrow(
-        EInvoiceTypeError
+        EInvoiceMissingTokenError
       )
     })
 
@@ -1635,7 +1882,7 @@ describe('EInvoiceApi', () => {
   describe('getSavedPhoneNumber()', () => {
     it('Erişim jetonu belirtilmediğinde hata fırlatmalı.', () => {
       expect(() => EInvoice.getSavedPhoneNumber()).rejects.toThrow(
-        EInvoiceTypeError
+        EInvoiceMissingTokenError
       )
     })
 
@@ -1687,7 +1934,7 @@ describe('EInvoiceApi', () => {
     it('Erişim jetonu belirtilmediğinde hata fırlatmalı.', () => {
       expect(() =>
         EInvoice.createDraftInvoice({} as CreateDraftInvoicePayload)
-      ).rejects.toThrow(EInvoiceTypeError)
+      ).rejects.toThrow(EInvoiceMissingTokenError)
     })
 
     it("e-Arşiv'de taslak olarak bir fatura oluşturmalı.", async () => {
@@ -1741,7 +1988,7 @@ describe('EInvoiceApi', () => {
     it('Erişim jetonu belirtilmediğinde hata fırlatmalı.', () => {
       expect(() =>
         EInvoice.updateDraftInvoice('', {} as UpdateDraftInvoicePayload)
-      ).rejects.toThrow(EInvoiceTypeError)
+      ).rejects.toThrow(EInvoiceMissingTokenError)
     })
 
     it("e-Arşiv'de taslak olarak bulunan bir faturayı güncellemeli.", async () => {
@@ -1802,7 +2049,7 @@ describe('EInvoiceApi', () => {
     it('Erişim jetonu belirtilmediğinde hata fırlatmalı.', () => {
       expect(() =>
         EInvoice.deleteDraftInvoice({} as BasicInvoice, '')
-      ).rejects.toThrow(EInvoiceTypeError)
+      ).rejects.toThrow(EInvoiceMissingTokenError)
     })
 
     it("e-Arşiv'de taslak olarak bulunan bir faturayı silmeli.", async () => {
@@ -1850,7 +2097,7 @@ describe('EInvoiceApi', () => {
     it('Erişim jetonu belirtilmediğinde hata fırlatmalı.', () => {
       expect(() =>
         EInvoice.createCancelRequestForInvoice({} as BasicInvoice, '')
-      ).rejects.toThrow(EInvoiceTypeError)
+      ).rejects.toThrow(EInvoiceMissingTokenError)
     })
 
     it('e-Arşiv fatura iptal talebi oluşturmalı.', async () => {
@@ -1898,7 +2145,9 @@ describe('EInvoiceApi', () => {
 
   describe('sendSMSCode()', () => {
     it('Erişim jetonu belirtilmediğinde hata fırlatmalı.', () => {
-      expect(() => EInvoice.sendSMSCode()).rejects.toThrow(EInvoiceTypeError)
+      expect(() => EInvoice.sendSMSCode()).rejects.toThrow(
+        EInvoiceMissingTokenError
+      )
     })
 
     it('SMS ile doğrulama kodu göndermeli.', async () => {
@@ -1948,7 +2197,7 @@ describe('EInvoiceApi', () => {
     it('Erişim jetonu belirtilmediğinde hata fırlatmalı.', () => {
       expect(() =>
         EInvoice.verifySMSCode('', '', {} as BasicInvoice)
-      ).rejects.toThrow(EInvoiceTypeError)
+      ).rejects.toThrow(EInvoiceMissingTokenError)
     })
 
     it('SMS ile gönderilen doğrulama kodunu onaylamalı ve fatura(ları) imzalamalı.', async () => {

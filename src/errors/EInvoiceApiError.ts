@@ -1,4 +1,4 @@
-import type EInvoiceApiErrorCode from '../enums/EInvoiceApiErrorCode'
+import type { EInvoiceApiErrorCode } from '../enums'
 
 export interface EInvoiceApiErrorResponse {
   data: unknown
@@ -9,8 +9,8 @@ export interface EInvoiceApiErrorResponse {
 
 class EInvoiceApiError extends Error {
   constructor(
-    public message: string,
-    private response: EInvoiceApiErrorResponse
+    public readonly message: string,
+    private readonly response: EInvoiceApiErrorResponse
   ) {
     super(message)
   }

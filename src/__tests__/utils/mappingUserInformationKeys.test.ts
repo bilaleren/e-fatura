@@ -1,4 +1,4 @@
-import EInvoiceTypeError from '../../errors/EInvoiceTypeError'
+import { EInvoiceTypeError } from '../../errors'
 import mappingUserInformationKeys from '../../utils/mappingUserInformationKeys'
 
 describe('mappingUserInformationKeys()', () => {

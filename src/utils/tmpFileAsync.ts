@@ -1,7 +1,7 @@
 export interface TmpFile {
   fd: number
   name: string
-  cleanup(): void
+  cleanup: () => void
 }
 
 async function tmpFileAsync(): Promise<TmpFile> {

@@ -1,13 +1,13 @@
 declare module 'number-to-text' {
-  export interface ConvertToNumberOptions {
+  export interface ConvertToTextOptions {
     case?: 'titleCase' | 'lowerCase' | 'upperCase'
     spaces?: boolean
     language?: string
     separator?: string
   }
 
-  export interface NumberToText {
-    convertToText(value: number, options?: ConvertToNumberOptions): string
+  interface NumberToText {
+    convertToText(value: number, options?: ConvertToTextOptions): string
   }
 
   const numberToText: NumberToText
