@@ -317,8 +317,7 @@ class EInvoiceApi {
       jp: JSON.stringify({
         baslangic: getDateFormat(startDate),
         bitis: getDateFormat(endDate),
-        hangiTip: '5000/30000',
-        table: []
+        hourlySearchInterval: "NONE"
       })
     }
 
