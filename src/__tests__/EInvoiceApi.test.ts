@@ -23,6 +23,7 @@ import {
 } from '../errors'
 import {
   EInvoiceCountry,
+  HourlySearchInterval,
   EInvoiceApiErrorCode,
   InvoiceApprovalStatus
 } from '../enums'
@@ -46,6 +47,7 @@ jest.mock('uuid', () => {
     v1: () => mockUuidValue
   }
 })
+
 jest.mock('axios')
 
 const mockedAxios = jest.mocked(axios)
@@ -1147,8 +1149,7 @@ describe('EInvoiceApi', () => {
           jp: JSON.stringify({
             baslangic: getDateFormat(),
             bitis: getDateFormat(),
-            hangiTip: '5000/30000',
-            table: []
+            hourlySearchInterval: HourlySearchInterval.NONE
           })
         }),
         getRequestConfig(EInvoice)
@@ -1194,8 +1195,7 @@ describe('EInvoiceApi', () => {
           jp: JSON.stringify({
             baslangic: getDateFormat(startDate),
             bitis: getDateFormat(endDate),
-            hangiTip: '5000/30000',
-            table: []
+            hourlySearchInterval: HourlySearchInterval.NONE
           })
         }),
         getRequestConfig(EInvoice)
@@ -1242,8 +1242,7 @@ describe('EInvoiceApi', () => {
             jp: JSON.stringify({
               baslangic: getDateFormat(),
               bitis: getDateFormat(),
-              hangiTip: '5000/30000',
-              table: []
+              hourlySearchInterval: HourlySearchInterval.NONE
             })
           }),
           getRequestConfig(EInvoice)

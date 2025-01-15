@@ -3,6 +3,7 @@ import type {
   InvoiceType,
   EInvoiceCountry,
   EInvoiceUnitType,
+  HourlySearchInterval,
   EInvoiceCurrencyType,
   InvoiceApprovalStatus
 } from './enums'
@@ -53,6 +54,17 @@ export interface FilterBasicInvoices {
    * @default undefined
    */
   approvalStatus?: InvoiceApprovalStatus | string
+}
+
+export interface FilterBasicInvoicesIssuedToMe extends FilterBasicInvoices {
+  /**
+   * Faturaların günün hangi aralığında kesildiği.
+   *
+   * Not: Varsayılan değer (`HourlySearchInterval.NONE`) dışında bir değer kullanmak istiyorsanız
+   * başlangıç ve bitiş tarihlerinin aynı olması gerekmektedir.
+   * @default HourlySearchInterval.NONE
+   */
+  hourlySearchInterval?: HourlySearchInterval
 }
 
 export interface InvoiceXsltRendererOptions {

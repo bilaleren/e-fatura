@@ -22,7 +22,11 @@ import {
   EInvoiceMissingTokenError,
   EInvoiceMissingCredentialsError
 } from './errors'
-import { EInvoiceApiErrorCode, type InvoiceApprovalStatus } from './enums'
+import {
+  EInvoiceApiErrorCode,
+  HourlySearchInterval,
+  type InvoiceApprovalStatus
+} from './enums'
 import type {
   Invoice,
   Credentials,
@@ -35,7 +39,8 @@ import type {
   CreateDraftInvoicePayload,
   UpdateDraftInvoicePayload,
   InvoiceXsltRendererOptions,
-  UpdateUserInformationPayload
+  UpdateUserInformationPayload,
+  FilterBasicInvoicesIssuedToMe
 } from './types'
 
 const isTestEnv = process.env.NODE_ENV === 'test'
@@ -304,20 +309,32 @@ class EInvoiceApi {
    * @param filter Faturaları filtrelemek için.
    */
   async getBasicInvoicesIssuedToMe(
-    filter?: FilterBasicInvoices
+    filter?: FilterBasicInvoicesIssuedToMe
   ): Promise<BasicInvoice[]> {
     this.checkToken()
 
-    const { startDate, endDate, approvalStatus } = filter || {}
+    const {
+      startDate,
+      endDate,
+      approvalStatus,
+      hourlySearchInterval = HourlySearchInterval.NONE
+    } = filter || {}
+
+    const startDateValue = getDateFormat(startDate)
+    const endDateValue = getDateFormat(endDate)
+
     const params: Record<string, string> = {
       cmd: 'EARSIV_PORTAL_ADIMA_KESILEN_BELGELERI_GETIR',
       callid: uuidV1(),
       pageName: 'RG_ALICI_TASLAKLAR',
       token: this.token!,
       jp: JSON.stringify({
-        baslangic: getDateFormat(startDate),
-        bitis: getDateFormat(endDate),
-        hourlySearchInterval: "NONE"
+        baslangic: startDateValue,
+        bitis: endDateValue,
+        hourlySearchInterval:
+          startDateValue === endDateValue
+            ? hourlySearchInterval
+            : HourlySearchInterval.NONE
       })
     }
 
