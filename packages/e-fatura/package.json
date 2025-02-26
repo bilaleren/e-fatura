@@ -1,0 +1,71 @@
+{
+  "name": "e-fatura",
+  "version": "2.0.0",
+  "description": "e-Arşiv üzerinden fatura oluşturur, faturaları listeler, faturaları imzalar ve daha fazlasını yapar.",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.cjs"
+      }
+    }
+  },
+  "license": "MIT",
+  "repository": "https://github.com/bilaleren/e-fatura",
+  "keywords": [
+    "e-arsiv",
+    "e-arsiv-cli",
+    "e-fatura",
+    "e-fatura-cli",
+    "js e-arsiv",
+    "js e-fatura",
+    "javascript e-arsiv",
+    "javascript e-fatura"
+  ],
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "axios": "1.5.1",
+    "lodash.merge": "^4.6.2",
+    "number-to-text": "^0.3.9",
+    "uuid": "^9.0.0"
+  },
+  "peerDependencies": {
+    "axios": ">=1.0.0",
+    "fflate": ">=0.8.0",
+    "puppeteer-core": ">=22.0.0",
+    "tmp": "*",
+    "uuid": ">=8.0.0"
+  },
+  "peerDependenciesMeta": {
+    "fflate": {
+      "optional": true
+    },
+    "tmp": {
+      "optional": true
+    },
+    "puppeteer-core": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@types/lodash.merge": "^4.6.7",
+    "@types/tmp": "^0.2.4",
+    "@types/uuid": "^9.0.1",
+    "fflate": "^0.8.2",
+    "puppeteer-core": "^24.1.1",
+    "tmp": "^0.2.1"
+  }
+}

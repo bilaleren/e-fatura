@@ -1,83 +1,37 @@
 {
-  "name": "e-fatura",
-  "version": "1.2.0",
-  "description": "e-Arşiv üzerinden fatura oluşturur, faturaları listeler, fatura(ları) imzalar ve daha fazlasını yapar.",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "license": "MIT",
-  "repository": "https://github.com/bilaleren/e-fatura",
-  "files": [
-    "dist"
-  ],
-  "keywords": [
-    "e-arşiv",
-    "e-fatura",
-    "js e-arşiv",
-    "js e-fatura",
-    "javascript e-arşiv",
-    "javascript e-fatura"
-  ],
+  "name": "e-fatura-root",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@8.14.1",
   "scripts": {
-    "prebuild": "rm -rf dist && yarn lint && yarn test",
-    "build": "NODE_ENV=production rollup -c",
-    "start:dev": "NODE_ENV=development rollup -c -w",
-    "lint": "eslint \"./src/**/*.ts\" --quiet",
-    "lint:fix": "eslint \"./src/**/*.ts\" --fix",
-    "format": "prettier --write \"./src/**/*.ts\"",
-    "test": "jest --config jest.config.js --detectOpenHandles",
-    "test:watch": "yarn run test --watchAll"
-  },
-  "engines": {
-    "node": ">=13.2"
-  },
-  "dependencies": {
-    "axios": "1.5.1",
-    "lodash.merge": "^4.6.2",
-    "number-to-text": "^0.3.9",
-    "uuid": "^9.0.0"
-  },
-  "peerDependencies": {
-    "axios": ">=1.0.0",
-    "fflate": ">=0.8.0",
-    "puppeteer": ">=19.4.0",
-    "uuid": ">=8.0.0"
-  },
-  "peerDependenciesMeta": {
-    "fflate": {
-      "optional": true
-    },
-    "puppeteer": {
-      "optional": true
-    }
+    "preinstall": "bash ./install-hooks.sh",
+    "prebuild": "pnpm run lint && pnpm run typecheck && pnpm run test",
+    "build": "pnpm run prebuild && pnpm run rollup:build",
+    "rollup:build": "NODE_ENV=production rollup -c",
+    "test": "vitest run",
+    "test:watch": "vitest watch",
+    "coverage": "vitest run --coverage",
+    "typecheck": "tsc -p tsconfig.json",
+    "lint": "eslint \"./packages/**/*.ts\" --quiet",
+    "lint:fix": "eslint \"./packages/**/*.ts\" --fix",
+    "format": "prettier --write \"./packages/**/*.ts\""
   },
   "devDependencies": {
-    "@rollup/plugin-typescript": "^11.0.0",
-    "@types/jest": "^29.5.0",
-    "@types/lodash.merge": "^4.6.7",
-    "@types/node": "^18.15.5",
-    "@types/tmp": "^0.2.4",
-    "@types/uuid": "^9.0.1",
-    "@typescript-eslint/eslint-plugin": "^2.26.0",
-    "@typescript-eslint/parser": "^2.26.0",
-    "e-fatura": "link:./dist",
-    "eslint": "^6.8.0",
-    "eslint-config-prettier": "^6.7.0",
-    "eslint-config-standard": "^14.1.0",
-    "eslint-plugin-import": "^2.18.2",
-    "eslint-plugin-node": "^11.0.0",
-    "eslint-plugin-prettier": "^3.1.1",
-    "eslint-plugin-promise": "^4.2.1",
-    "eslint-plugin-standard": "^4.0.1",
-    "fflate": "^0.8.0",
-    "jest": "^29.5.0",
-    "prettier": "^2.8.6",
-    "puppeteer": "^19.8.3",
-    "rollup": "^3.20.2",
-    "rollup-plugin-cleanup": "^3.2.1",
-    "rollup-plugin-dts": "^5.3.0",
+    "@rollup/plugin-json": "^6.1.0",
+    "@rollup/plugin-typescript": "^12.1.2",
+    "@types/node": "^22.10.7",
+    "@typescript-eslint/eslint-plugin": "^8.24.1",
+    "@typescript-eslint/parser": "^8.24.1",
+    "@vitest/coverage-v8": "^3.0.6",
+    "eslint": "^8.57.1",
+    "eslint-config-prettier": "^10.0.1",
+    "eslint-config-standard": "^17.1.0",
+    "eslint-plugin-prettier": "^5.2.3",
+    "prettier": "^3.5.1",
+    "rollup": "^4.30.1",
+    "rollup-plugin-dts": "^6.1.1",
     "rollup-plugin-node-externals": "^5.1.2",
-    "tmp": "^0.2.1",
-    "ts-jest": "^29.0.5",
-    "typescript": "^4.9.5"
+    "typescript": "^5.7.3",
+    "vitest": "^3.0.6"
   }
 }
