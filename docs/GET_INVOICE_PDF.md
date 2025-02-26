@@ -3,10 +3,10 @@
 Faturanın PDF çıktısını alır.
 
 ```shell
-yarn add puppeteer
+yarn add puppeteer-core
 ```
 
-Faturanın PDF çıktısını alabilmek için [Puppeteer](https://pptr.dev/) adlı paket kullanılmaktadır. Bu paket sayesinde faturanızın HTML çıktısını tarayıcı penceresine aktararak PDF çıktısını elde edebiliyoruz.
+Faturanın PDF çıktısını alabilmek için [Puppeteer](https://pptr.dev/guides/installation) adlı paket kullanılmaktadır. Bu paket sayesinde faturanızın HTML çıktısını tarayıcı penceresine aktararak PDF çıktısını elde edebiliyoruz.
 
 ```typescript
 import fs from 'fs/promises'
@@ -20,7 +20,7 @@ const pdfBuffer = await EInvoice.getInvoicePdf(
   invoiceOrUuid,
   false, // Faturanın onay durumu: varsayılan true
   {
-    format: 'A3',
+    format: 'A4',
     margin: {
       top: 10,
       left: 10,

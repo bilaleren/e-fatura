@@ -1,0 +1,4 @@
+packages:
+  - "packages/e-fatura"
+  - "packages/e-fatura-cli"
+

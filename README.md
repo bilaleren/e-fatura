@@ -27,8 +27,10 @@ npm i e-fatura
 import EInvoice, {
   getDateFormat, // Tarih formatını alır (Gün/Ay/Yıl veya Saat:Dakika:Saniye)
   paymentPriceToText, // Ödenecek tutarı metine dönüştürür
+  isEInvoiceApiResponseError, // e-Arşiv HTTP yanıtının hata içerip içermediğini kontrol eder
   XsltRenderer, // Faturayı XSLT şablonu ile işler
-  EInvoiceApi, // e-Arşiv API servisi
+  EInvoiceApi, // Soyut hata sınıfı
+  EInvoiceError, // Tür hata sınıfı
   EInvoiceTypeError, // Tür hata sınıfı
   EInvoiceApiError, // API hata sınıfı
   EInvoiceMissingTokenError, // Eksik veya hatalı erişim jetonu hata sınıfı
@@ -47,6 +49,7 @@ import EInvoice, {
 
 - [Fatura oluşturma.](docs/CREATE_DRAFT_INVOICE.md)
 - [Faturaları listeleme.](docs/GET_BASIC_INVOICES.md)
+- [Faturaları imzalama.](docs/SIGN_INVOICES.md)
 - [Adınıza düzenlenen faturaları listeleme.](docs/GET_BASIC_INVOICES_ISSUED_TO_ME.md)
 - [Temel fatura bilgileri alma.](docs/FIND_BASIC_INVOICE.md)
 - [Detaylı fatura bilgilerini alma.](docs/GET_INVOICE.md)
@@ -60,7 +63,6 @@ import EInvoice, {
 - [Fatura iptal etme.](docs/CREATE_CANCEL_REQUEST_FOR_INVOICE.md)
 - [Kullanıcı (şirket) bilgilerini getirme.](docs/GET_USER_INFORMATION.md)
 - [Kullanıcı (şirket) bilgilerini güncelleme.](docs/UPDATE_USER_INFORMATION.md)
-- [SMS ile Fatura doğrulama ve onaylama.](docs/SIGN_INVOICE_VIA_SMS.md)
 - [XSLT şablonu ile fatura işleme. (Deneysel)](docs/INVOICE_XSLT_RENDERER.md)
 
 ## Kullanım
@@ -101,8 +103,8 @@ EInvoice.setTestMode(true) // varsayılan olarak false
 // Anonim kullanıcı bilgileri atar.
 await EInvoice.setAnonymousCredentials()
 
-// e-Arşive bağlanır.
-await EInvoice.connect() // veya EInvoice.getAccessToken()
+// e-Arşiv'e bağlanır.
+await EInvoice.connect()
 
 // ... Diğer işlemler. Fatura oluşturma, listeleme, düzenleme vb.
 
@@ -140,8 +142,8 @@ EInvoice.setCredentials({
   password: 'şifre'
 })
 
-// e-Arşive bağlanır.
-await EInvoice.connect() // veya EInvoice.getAccessToken()
+// e-Arşiv'e bağlanır.
+await EInvoice.connect()
 
 // ... Diğer işlemler. Fatura oluşturma, listeleme, düzenleme vb.
 
@@ -164,8 +166,7 @@ import EInvoice, {
 } from 'e-fatura'
 
 try {
-  await EInvoice.createDraftInvoice({})
-  // veya EInvoice.*()
+  // EInvoice.*()
 } catch (e) {
   if (e instanceof EInvoiceTypeError) {
     console.error('Tür hatası meydana geldi:', e)
@@ -174,20 +175,18 @@ try {
   } else if (e instanceof EInvoiceMissingCredentialsError) {
     console.error('Giriş bilgileri sağlanmadı veya eksik sağlandı:', e.credentials)
   } else if (e instanceof EInvoiceApiError) {
-    const response = e.getResponse()
-
     switch (e.errorCode) {
       case EInvoiceApiErrorCode.UNKNOWN_ERROR:
-        console.error('Bilinmeyen bir hata oluştu:', response)
+        console.error('Bilinmeyen bir hata oluştu:', e.response)
         break
       case EInvoiceApiErrorCode.INVALID_RESPONSE:
-        console.error('Geçersiz API cevabı:', response)
+        console.error('Geçersiz API cevabı:', e.response)
         break
       case EInvoiceApiErrorCode.INVALID_ACCESS_TOKEN:
-        console.error('Geçersiz erişim jetonu:', response)
+        console.error('Geçersiz erişim jetonu:', e.response)
         break
       case EInvoiceApiErrorCode.BASIC_INVOICE_NOT_CREATED:
-        console.error('Basit fatura oluşturulamadı:', response)
+        console.error('Basit fatura oluşturulamadı:', e.response)
       // ...
     }
   } else if (axios.isAxiosError(e)) {
