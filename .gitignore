@@ -5,7 +5,6 @@ node_modules
 .env
 .DS_Store
 .secrets
-invoice-data/*
 yarn-error.log
 !invoice-data/.gitkeep
 .pnp.*
