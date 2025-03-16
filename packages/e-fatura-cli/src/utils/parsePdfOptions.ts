@@ -65,12 +65,14 @@ function parsePdfOptions(options: readonly string[]): PDFOptions {
         }
         break;
       }
-      case 'margin.top':
-      case 'margin.bottom':
-      case 'margin.left':
-      case 'margin.right': {
+      case 'marginTop':
+      case 'marginBottom':
+      case 'marginLeft':
+      case 'marginRight': {
         if (value) {
-          const property = key.split('.')[1] as keyof PDFMargin;
+          const property = key
+            .replace('margin', '')
+            .toLowerCase() as keyof PDFMargin;
 
           opts.margin = {
             ...opts.margin,
@@ -79,7 +81,7 @@ function parsePdfOptions(options: readonly string[]): PDFOptions {
         }
         break;
       }
-      case 'margin.vertical': {
+      case 'marginVertical': {
         if (value) {
           const marginSize = parseSizeValue(value);
 
@@ -91,7 +93,7 @@ function parsePdfOptions(options: readonly string[]): PDFOptions {
         }
         break;
       }
-      case 'margin.horizontal': {
+      case 'marginHorizontal': {
         if (value) {
           const marginSize = parseSizeValue(value);
 
