@@ -26,7 +26,7 @@
   },
   "scripts": {
     "generate:readme": "cat README_EXAMPLE.md > README.md && bun run ./scripts/generate-readme.ts >> README.md",
-    "generate:docker-readme": "cat DOCKER_README_EXAMPLE.md > DOCKER_README.md && bun run ./scripts/generate-docker-readme.ts >> DOCKER_README.md"
+    "generate:docker-readme": "cat DOCKER_README_EXAMPLE.md > DOCKER_README.md && DOCKER_README=true bun run ./scripts/generate-readme.ts >> DOCKER_README.md"
   },
   "dependencies": {
     "@inquirer/core": "^10.1.4",
@@ -34,7 +34,7 @@
     "@inquirer/input": "^4.1.3",
     "@inquirer/type": "^3.0.2",
     "ansi-escapes": "^7.0.0",
-    "axios": "1.5.1",
+    "axios": "^1.8.3",
     "chalk": "^5.4.1",
     "change-case": "^5.4.4",
     "cli-cursor": "^5.0.0",
