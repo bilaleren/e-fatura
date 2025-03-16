@@ -28,19 +28,19 @@ function mappingCompanyInformationKeys(
   }
 
   const {
-    unvan = '',
-    adi = '',
-    soyadi = '',
-    vergiDairesi = '',
+    unvan: title = '',
+    adi: firstName = '',
+    soyadi: lastName = '',
+    vergiDairesi: taxOffice = '',
     ...other
   } = value;
 
   return {
     ...other,
-    title: unvan,
-    firstName: adi,
-    lastName: soyadi,
-    taxOffice: vergiDairesi
+    title,
+    firstName,
+    lastName,
+    taxOffice
   };
 }
 

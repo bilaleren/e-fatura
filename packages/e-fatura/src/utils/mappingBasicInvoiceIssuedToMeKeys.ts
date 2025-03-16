@@ -34,25 +34,25 @@ function mappingBasicInvoiceIssuedToMeKeys(
   }
 
   const {
-    ettn = '',
-    belgeNumarasi = '',
-    saticiVknTckn = '',
-    saticiUnvanAdSoyad = '',
-    belgeTarihi = '',
-    belgeTuru = '',
-    onayDurumu = '',
+    ettn: uuid = '',
+    belgeNumarasi: documentNumber = '',
+    saticiVknTckn: taxOrIdentityNumber = '',
+    saticiUnvanAdSoyad: titleOrFullName = '',
+    belgeTarihi: documentDate = '',
+    belgeTuru: documentType = '',
+    onayDurumu: approvalStatus = '',
     ...other
   } = value;
 
   return {
     ...other,
-    uuid: ettn,
-    documentNumber: belgeNumarasi,
-    taxOrIdentityNumber: saticiVknTckn,
-    titleOrFullName: saticiUnvanAdSoyad,
-    documentDate: belgeTarihi,
-    documentType: belgeTuru,
-    approvalStatus: onayDurumu
+    uuid,
+    documentNumber,
+    taxOrIdentityNumber,
+    titleOrFullName,
+    documentDate,
+    documentType,
+    approvalStatus
   };
 }
 
