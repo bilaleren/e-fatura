@@ -15,6 +15,6 @@ export {
   type EInvoiceApiResponseError
 } from './utils';
 
-const EInvoice = EInvoiceApi.create();
+export const EInvoice = EInvoiceApi.create();
 
 export default EInvoice;
