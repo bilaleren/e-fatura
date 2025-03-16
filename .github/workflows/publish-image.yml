@@ -11,28 +11,26 @@ env:
   DOCKERHUB_USERNAME: bilaleren
 
 jobs:
-  cli_package_info:
+  cli-package-info:
     name: Get CLI package info
     runs-on: ubuntu-latest
     outputs:
-      name: ${{ steps.version.outputs.name }}
-      version: ${{ steps.version.outputs.version }}
-      description: ${{ steps.version.outputs.description }}
+      version: ${{ steps.info.outputs.version }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - id: version
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+
+      - id: info
         run: |
-          sudo apt-get update
-          sudo apt-get install jq -y
-          echo "name=$(cat ./packages/e-fatura-cli/package.json | jq -r '.name')" >> "$GITHUB_OUTPUT"
-          echo "version=$(cat ./packages/e-fatura-cli/package.json | jq -r '.version')" >> "$GITHUB_OUTPUT"
-          echo "description=$(cat ./packages/e-fatura-cli/package.json | jq -r '.description')" >> "$GITHUB_OUTPUT"
+          echo "version=$(node -pe "require('./packages/e-fatura-cli/package.json').version")" >> $GITHUB_OUTPUT
 
-  publish_image_to_docker_hub:
+  publish-image:
     name: Publish image to DockerHUB
-    needs: cli_package_info
+    needs:
+      - cli-package-info
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -47,30 +45,17 @@ jobs:
           username: ${{ env.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
-      - name: Build and push latest image to DockerHUB
+      - name: Build and push image to DockerHUB
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: ./latest.dockerfile
+          file: ./Dockerfile
+          build-args: |
+            CLI_PACKAGE_VERSION=${{ needs.cli-package-info.outputs.version }}
           push: true
           tags: |
             ${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
-          labels: |
-            org.opencontainers.image.source="${{ github.server_url }}/${{ github.repository }}"
-          platforms: ${{ env.TARGET_PLATFORMS }}
-
-      - name: Build and push v${{ needs.cli_package_info.outputs.version }} image to DockerHUB
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          build-args: |
-            CLI_PACKAGE_VERSION=${{ needs.cli_package_info.outputs.version }}
-          file: ./version.dockerfile
-          push: true
-          tags: |
-            ${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ needs.cli_package_info.outputs.version }}
-          labels: |
-            org.opencontainers.image.source="${{ github.server_url }}/${{ github.repository }}"
+            ${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ needs.cli-package-info.outputs.version }}
           platforms: ${{ env.TARGET_PLATFORMS }}
 
       - name: DockerHub Description
