@@ -1,6 +1,6 @@
 {
   "name": "e-fatura-cli",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Bu paket komut satırı arayüzü (CLI) üzerinden e-Arşiv faturalarını listeler, imzalar, indirir ve daha fazlasını yapar.",
   "type": "module",
   "bin": {
