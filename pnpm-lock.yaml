@@ -60,8 +60,8 @@ importers:
   packages/e-fatura:
     dependencies:
       axios:
-        specifier: 1.5.1
-        version: 1.5.1
+        specifier: ^1.8.3
+        version: 1.8.3
       lodash.merge:
         specifier: ^4.6.2
         version: 4.6.2
@@ -109,8 +109,8 @@ importers:
         specifier: ^7.0.0
         version: 7.0.0
       axios:
-        specifier: 1.5.1
-        version: 1.5.1
+        specifier: ^1.8.3
+        version: 1.8.3
       chalk:
         specifier: ^5.4.1
         version: 5.4.1
@@ -1375,8 +1375,8 @@ packages:
       possible-typed-array-names: 1.1.0
     dev: true
 
-  /axios@1.5.1:
-    resolution: {integrity: sha512-Q28iYCWzNHjAm+yEAot5QaAMxhMghWLFVf7rRdwhUI+c2jix2DUXjAHXVi+s1ibs3mjPO/cCgbA++3BjD0vP/A==}
+  /axios@1.8.3:
+    resolution: {integrity: sha512-iP4DebzoNlP/YN2dpwCgb8zoCmhtkajzS48JvwmkSkXvPI3DHc7m+XYL5tGnSlJtR6nImXZmdCuN5aP8dh1d8A==}
     dependencies:
       follow-redirects: 1.15.9
       form-data: 4.0.2
