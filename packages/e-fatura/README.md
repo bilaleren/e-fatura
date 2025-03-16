@@ -64,6 +64,7 @@ import EInvoice, {
 - [Kullanıcı (şirket) bilgilerini getirme.](docs/GET_USER_INFORMATION.md)
 - [Kullanıcı (şirket) bilgilerini güncelleme.](docs/UPDATE_USER_INFORMATION.md)
 - [XSLT şablonu ile fatura işleme. (Deneysel)](docs/INVOICE_XSLT_RENDERER.md)
+- [Komut satırı arayüzü (CLI) uygulaması. (Yeni)](https://github.com/bilaleren/e-fatura/blob/master/packages/e-fatura-cli/README.md)
 
 ## Kullanım
 
@@ -76,8 +77,6 @@ https://earsivportal.efatura.gov.tr/intragiris.html
 https://earsivportaltest.efatura.gov.tr/login.jsp
 
 ### Test ortamı için kullanım;
-
-**Kullanım 1**
 
 ```typescript
 import EInvoice from 'e-fatura'
@@ -92,29 +91,7 @@ await EInvoice.connect({
 await EInvoice.logout()
 ```
 
-**Kullanım 2**
-
-```typescript
-import EInvoice from 'e-fatura'
-
-// Test modunu aktif/deaktif eder.
-EInvoice.setTestMode(true) // varsayılan olarak false
-
-// Anonim kullanıcı bilgileri atar.
-await EInvoice.setAnonymousCredentials()
-
-// e-Arşiv'e bağlanır.
-await EInvoice.connect()
-
-// ... Diğer işlemler. Fatura oluşturma, listeleme, düzenleme vb.
-
-// e-Arşiv oturumunu sonlandırır.
-await EInvoice.logout()
-```
-
 ### Ürün ortamı için kullanım;
-
-**Kullanım 1**
 
 ```typescript
 import EInvoice from 'e-fatura'
@@ -124,26 +101,6 @@ await EInvoice.connect({
   username: 'kullanıcı kodu|adı',
   password: 'şifre'
 })
-
-// ... Diğer işlemler. Fatura oluşturma, listeleme, düzenleme vb.
-
-// e-Arşiv oturumunu sonlandırır.
-await EInvoice.logout()
-```
-
-**Kullanım 2**
-
-```typescript
-import EInvoice from 'e-fatura'
-
-// Muhasebecinizden aldığınız giriş bilgileri.
-EInvoice.setCredentials({
-  username: 'kullanıcı kodu|adı',
-  password: 'şifre'
-})
-
-// e-Arşiv'e bağlanır.
-await EInvoice.connect()
 
 // ... Diğer işlemler. Fatura oluşturma, listeleme, düzenleme vb.
 
@@ -197,7 +154,7 @@ try {
 }
 ```
 
-Not: Diğer API hata kodları için [EInvoiceApiErrorCode.ts](src/enums/EInvoiceApiErrorCode.ts) dosyasına bakabilirsiniz.
+> Diğer API hata kodları için [EInvoiceApiErrorCode.ts](https://github.com/bilaleren/e-fatura/blob/master/packages/e-fatura/src/enums/EInvoiceApiErrorCode.ts) dosyasına bakabilirsiniz.
 
 #### Ayrıca
 
