@@ -46,7 +46,7 @@ const columns: TableColumn<BasicInvoice>[] = [
     accessorKey: 'taxOrIdentityNumber'
   },
   {
-    header: basicInvoiceKeyMap.documentDate,
+    header: basicInvoiceKeyMap.documentNumber,
     accessorKey: 'documentNumber'
   },
   {
