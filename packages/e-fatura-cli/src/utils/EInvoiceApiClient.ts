@@ -1,10 +1,15 @@
+import * as fs from 'node:fs/promises';
 import * as dotenv from 'dotenv';
 import { EInvoiceApi } from 'e-fatura';
 import chalk from 'chalk';
 import Print from './Print';
 import isFileExists from './isFileExists';
 import tryPromise, { type TryPromiseOptions } from './tryPromise';
-import { USERNAME_ENV_KEY, PASSWORD_ENV_KEY } from '../constants';
+import {
+  USERNAME_ENV_KEY,
+  PASSWORD_ENV_KEY,
+  E_INVOICE_SESSION_FILE_PATH
+} from '../constants';
 
 interface Credentials {
   readonly username: string;
@@ -46,12 +51,16 @@ abstract class EInvoiceApiClient {
 
     this.client = await tryPromise(
       async () => {
+        await this.cleanupSession(credentials);
+
         const client = EInvoiceApi.create();
 
         client.setTestMode(credentials.password === '1');
         client.setCredentials(credentials);
 
         await client.initAccessToken();
+
+        await this.createSessionFile(client.getToken()!);
 
         return client;
       },
@@ -65,8 +74,17 @@ abstract class EInvoiceApiClient {
   }
 
   static async logout(): Promise<void> {
-    if (this.client) {
-      await tryPromise(() => this.client!.logout());
+    if (!this.client) {
+      return;
+    }
+
+    try {
+      this.client.logout();
+      await this.removeSessionFile();
+      // eslint-disable-next-line no-useless-catch
+    } catch (error) {
+      throw error;
+    } finally {
       this.client = null;
     }
   }
@@ -104,6 +122,39 @@ abstract class EInvoiceApiClient {
     };
 
     return this.credentials;
+  }
+
+  private static async createSessionFile(token: string): Promise<void> {
+    await fs.writeFile(E_INVOICE_SESSION_FILE_PATH, token, 'utf-8');
+  }
+
+  private static async removeSessionFile(): Promise<void> {
+    if (await this.isSessionFileExists()) {
+      await fs.rm(E_INVOICE_SESSION_FILE_PATH);
+    }
+  }
+
+  private static async cleanupSession(credentials: Credentials): Promise<void> {
+    if (!(await this.isSessionFileExists())) {
+      return;
+    }
+
+    try {
+      const token = await fs.readFile(E_INVOICE_SESSION_FILE_PATH, 'utf-8');
+      const client = EInvoiceApi.create();
+
+      client.setTestMode(credentials.password === '1');
+
+      client.setToken(token);
+
+      await client.logout();
+    } finally {
+      await this.removeSessionFile();
+    }
+  }
+
+  private static isSessionFileExists(): Promise<boolean> {
+    return isFileExists(E_INVOICE_SESSION_FILE_PATH);
   }
 }
 
