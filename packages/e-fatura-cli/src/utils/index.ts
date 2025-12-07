@@ -20,6 +20,8 @@ export { default as ensureDirectory } from './ensureDirectory';
 
 export { default as exitProgram } from './exitProgram';
 
+export { default as registerShutdownHooks } from './registerShutdownHooks';
+
 export {
   default as commandWithDateOptions,
   type CommandWithDateOptions
