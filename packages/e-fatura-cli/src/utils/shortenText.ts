@@ -14,12 +14,7 @@ function shortenText(text: string): string {
     return text;
   }
 
-  const lastWord = words.pop();
-
-  if (!lastWord || words.length === 0) {
-    return text;
-  }
-
+  const lastWord = words.pop()!;
   const chars = words.map((word) => word.charAt(0));
 
   return `${chars.join('.')} ${lastWord}`;
