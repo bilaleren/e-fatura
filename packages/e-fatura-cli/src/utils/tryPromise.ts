@@ -9,84 +9,102 @@ import {
   isEInvoiceApiResponseError
 } from 'e-fatura';
 
-let retryCount = 0;
-
-export interface TryPromiseOptions<T> {
+export interface TryPromiseOptions {
   isTTY?: boolean;
   exitOnError?: boolean;
   loadingText?: string;
-  maxRetryCount?: number;
-  whenSessionTimeout?: () => Promise<T>;
+  onSessionTimeout?: () => Promise<void>;
+  maxSessionRetryCount?: number;
+  currentSessionRetryCount?: number;
 }
 
 async function tryPromise<T>(
   factory: () => Promise<T>,
-  options?: TryPromiseOptions<T>
+  options?: TryPromiseOptions
 ): Promise<T> {
   const {
     isTTY = process.stdout.isTTY,
     exitOnError = true,
     loadingText,
-    maxRetryCount = 3,
-    whenSessionTimeout
+    onSessionTimeout,
+    maxSessionRetryCount = 3,
+    currentSessionRetryCount = 0
   } = options || {};
 
   let load: Ora | undefined;
 
-  if (isTTY && loadingText) {
+  if (isTTY && loadingText && currentSessionRetryCount === 0) {
     load = ora(loadingText).start();
   }
 
-  const printError = (...args: any[]) => {
+  const stopLoad = (): void => {
+    if (load) {
+      load.stop();
+      process.stdout.write(ansiEscapes.cursorShow);
+      load = undefined;
+    }
+  };
+
+  const printError = (...args: any[]): void => {
     if (isTTY) {
       Print.error(...args);
     }
   };
 
+  const handleSessionTimeoutRetry = async (): Promise<T> => {
+    stopLoad();
+
+    try {
+      await onSessionTimeout?.();
+    } catch (error) {
+      printError(error);
+    }
+
+    return tryPromise(factory, {
+      ...options,
+      currentSessionRetryCount: currentSessionRetryCount + 1
+    });
+  };
+
   try {
     const result = await factory();
 
-    if (load) {
-      load.stop();
-      process.stdout.write(ansiEscapes.cursorShow);
-    }
-
-    retryCount = 0;
+    stopLoad();
 
     return result;
   } catch (err) {
-    if (load) {
-      load.stop();
-      process.stdout.write(ansiEscapes.cursorShow);
-    }
+    stopLoad();
 
     if (axios.isAxiosError(err)) {
       const error = err as AxiosError;
       const data = error.response?.data;
 
-      if (whenSessionTimeout && isEInvoiceApiResponseError(data)) {
+      if (onSessionTimeout && isEInvoiceApiResponseError(data)) {
         const isSessionTimeoutError = data.messages.some(
           (message) => message.type === '4'
         );
 
-        if (retryCount <= maxRetryCount && isSessionTimeoutError) {
-          return whenSessionTimeout();
+        if (
+          currentSessionRetryCount < maxSessionRetryCount &&
+          isSessionTimeoutError
+        ) {
+          return handleSessionTimeoutRetry();
         }
       }
 
       printError(`${error.name}:`, error.message);
     } else if (err instanceof EInvoiceApiError) {
       if (
-        whenSessionTimeout &&
-        retryCount <= maxRetryCount &&
+        onSessionTimeout &&
+        currentSessionRetryCount < maxSessionRetryCount &&
         err.errorCode === EInvoiceApiErrorCode.SESSION_TIMEOUT
       ) {
-        return whenSessionTimeout();
+        return handleSessionTimeoutRetry();
       } else {
         const error = err as EInvoiceApiError;
         const response = error.response;
 
-        if (isEInvoiceApiResponseError(response.data)) {
+        if (isEInvoiceApiResponseError(response?.data)) {
           const messages = response.data.messages.map(
             (message) => `[${message.type}] ${message.text}`
           );

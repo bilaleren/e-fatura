@@ -19,7 +19,7 @@ abstract class EInvoiceApiClient {
   static async exec<T>(
     factory: (client: EInvoiceApi) => Promise<T>,
     envFile: string | undefined,
-    options?: TryPromiseOptions<T>
+    options?: TryPromiseOptions
   ) {
     const client = this.client;
 
@@ -28,10 +28,9 @@ abstract class EInvoiceApiClient {
       process.exit(1);
     }
 
-    return await tryPromise(() => factory(client), {
-      whenSessionTimeout: async () => {
+    return tryPromise(() => factory(client), {
+      onSessionTimeout: async () => {
         await this.login(envFile, false);
-        return await factory(client);
       },
       ...options
     });
