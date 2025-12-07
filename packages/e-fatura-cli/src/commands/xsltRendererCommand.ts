@@ -6,6 +6,7 @@ import { zipSync, type Zippable } from 'fflate';
 import {
   Print,
   EInvoiceApiClient,
+  exitProgram,
   shortenText,
   isFileExists,
   launchBrowser,
@@ -84,7 +85,7 @@ xsltRendererCommand
   .arguments('<xslt-path>')
   .action(async function (xsltPath: string) {
     if (!process.stdout.isTTY) {
-      process.exit();
+      return exitProgram();
     }
 
     const opts = this.opts<XsltRendererOpts>();
@@ -94,7 +95,7 @@ xsltRendererCommand
       Print.error(
         'Sağladığınız xslt dosyası bulunamadı. Dosya yolunu kontrol ederek tekrar deneyin.'
       );
-      process.exit(1);
+      return exitProgram(1);
     }
 
     await EInvoiceApiClient.login(opts.envFile);

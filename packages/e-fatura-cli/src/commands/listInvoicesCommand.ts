@@ -1,6 +1,7 @@
 import { createCommand } from 'commander';
 import {
   EInvoiceApiClient,
+  exitProgram,
   createInvoicesTable,
   commandWithDateOptions,
   commandWithStatusOption,
@@ -31,7 +32,7 @@ commandWithHourlySearchIntervalOption(listInvoicesCommand);
 
 listInvoicesCommand.action(async function () {
   if (!process.stdout.isTTY) {
-    process.exit();
+    return exitProgram();
   }
 
   const opts = this.opts<ListInvoicesOpts>();

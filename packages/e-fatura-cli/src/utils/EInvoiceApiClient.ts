@@ -3,6 +3,7 @@ import * as dotenv from 'dotenv';
 import { EInvoiceApi } from 'e-fatura';
 import chalk from 'chalk';
 import Print from './Print';
+import exitProgram from './exitProgram';
 import isFileExists from './isFileExists';
 import tryPromise, { type TryPromiseOptions } from './tryPromise';
 import {
@@ -30,7 +31,7 @@ abstract class EInvoiceApiClient {
 
     if (!client) {
       Print.error('e-Arşiv istemcisi tanımlanmamış.');
-      process.exit(1);
+      return exitProgram(1);
     }
 
     return tryPromise(() => factory(client), {
@@ -113,7 +114,7 @@ abstract class EInvoiceApiClient {
         )} adlı ortam değişken(ler)i sağlanmadı.`
       );
 
-      process.exit(1);
+      return exitProgram(1);
     }
 
     this.credentials = {

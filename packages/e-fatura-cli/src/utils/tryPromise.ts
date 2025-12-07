@@ -8,6 +8,7 @@ import {
   EInvoiceApiErrorCode,
   isEInvoiceApiResponseError
 } from 'e-fatura';
+import exitProgram from './exitProgram';
 
 export interface TryPromiseOptions {
   isTTY?: boolean;
@@ -122,7 +123,7 @@ async function tryPromise<T>(
     }
 
     if (exitOnError) {
-      process.exit(1);
+      return exitProgram(1);
     } else {
       throw err;
     }

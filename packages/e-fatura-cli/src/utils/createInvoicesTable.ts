@@ -2,6 +2,7 @@ import Print from './Print';
 import { AbortPromptError } from '@inquirer/core';
 import { table, type TableValue, type TableColumn } from 'inquirer-table';
 import chalk from 'chalk';
+import exitProgram from './exitProgram';
 import type { KnownKeys } from '../types';
 import type { BasicInvoice } from 'e-fatura';
 
@@ -80,7 +81,7 @@ async function createInvoicesTable<
 
   if (invoices.length === 0) {
     Print.warn(emptyDescription);
-    return process.exit();
+    return exitProgram();
   }
 
   const controller = new AbortController();
@@ -151,12 +152,12 @@ async function createInvoicesTable<
 
   if (!result) {
     Print.info('İşlem iptal edildi.');
-    return process.exit();
+    return exitProgram();
   }
 
   if (Array.isArray(result) && result.length === 0) {
     Print.warn(emptyResultDescription);
-    return process.exit();
+    return exitProgram();
   }
 
   return result;

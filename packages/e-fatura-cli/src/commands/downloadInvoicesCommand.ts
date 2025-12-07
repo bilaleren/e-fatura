@@ -6,6 +6,7 @@ import { createCommand, createOption } from 'commander';
 import {
   Print,
   EInvoiceApiClient,
+  exitProgram,
   sleep,
   shortenText,
   isFileExists,
@@ -368,7 +369,7 @@ downloadInvoicesCommand
   )
   .action(async function () {
     if (!process.stdout.isTTY) {
-      process.exit();
+      return exitProgram();
     }
 
     const opts = this.opts<DownloadInvoicesOpts>();
@@ -395,7 +396,7 @@ downloadInvoicesCommand
     } else {
       if (selectedInvoices.length === 0) {
         Print.warn('İndirilecek fatura bulunamadı.');
-        return process.exit();
+        return exitProgram();
       }
     }
 

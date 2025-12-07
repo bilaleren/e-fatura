@@ -9,6 +9,7 @@ import {
   Print,
   objectMap,
   capitalize,
+  exitProgram,
   isFileExists,
   ensureDirectory,
   createInvoicesTable,
@@ -84,7 +85,7 @@ const actions = {
 
       if (await isFileExists(filepath)) {
         Print.warn(`"${filepath}" adlı dosya zaten var.`);
-        process.exit();
+        return exitProgram();
       }
 
       const fileData = await data();
@@ -233,7 +234,7 @@ exportInvoicesCommand
     const opts = this.opts<ExportInvoicesOpts>();
 
     if (opts.interactive && !process.stdout.isTTY) {
-      process.exit();
+      return exitProgram();
     }
 
     await EInvoiceApiClient.login(opts.envFile);

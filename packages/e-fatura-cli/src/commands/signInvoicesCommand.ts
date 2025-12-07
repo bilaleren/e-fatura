@@ -5,6 +5,7 @@ import { InvoiceApprovalStatus } from 'e-fatura';
 import {
   Print,
   EInvoiceApiClient,
+  exitProgram,
   createInvoicesTable,
   commandWithDateOptions,
   commandWithEnvFileOption,
@@ -24,7 +25,7 @@ commandWithEnvFileOption(signInvoicesCommand);
 
 signInvoicesCommand.action(async function () {
   if (!process.stdout.isTTY) {
-    process.exit();
+    return exitProgram();
   }
 
   const opts = this.opts<SigInvoicesOpts>();
@@ -32,7 +33,7 @@ signInvoicesCommand.action(async function () {
 
   if (credentials.password === '1') {
     Print.warn('Fatura imzalama işlemi test hesapları ile gerçekleştirilemez.');
-    process.exit();
+    return exitProgram();
   }
 
   await EInvoiceApiClient.login(opts.envFile);
